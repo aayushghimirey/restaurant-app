@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { cn } from "@/lib/utils";
 import { Trash2, Plus, Minus, ShoppingBag, Send, Search, Filter, ChefHat, Coffee, Utensils } from 'lucide-react';
 import { useMenus } from '@/features/menus/api';
-import { useCreateReservation } from '../api';
+import { useCreateReservation, useUpdateReservation } from '../api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import type { MenuCategory } from '@/features/menus/types';
@@ -10,6 +10,8 @@ import type { MenuCategory } from '@/features/menus/types';
 interface OrderBuilderProps {
   tableId: string;
   tableName: string;
+  sessionId?: string; // Optional for update mode
+  initialItems?: OrderItem[]; // Optional for update mode
   onComplete: () => void;
 }
 
@@ -18,6 +20,7 @@ interface OrderItem {
   name: string;
   price: number;
   quantity: number;
+  isExisting?: boolean;
 }
 
 const CATEGORY_ICONS: Record<string, React.ElementType> = {
@@ -28,13 +31,32 @@ const CATEGORY_ICONS: Record<string, React.ElementType> = {
   OTHER: Utensils,
 };
 
-export function OrderBuilder({ tableId, tableName, onComplete }: OrderBuilderProps) {
+export function OrderBuilder({ 
+  tableId, 
+  tableName, 
+  sessionId, 
+  initialItems, 
+  onComplete 
+}: OrderBuilderProps) {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState<MenuCategory | 'ALL'>('ALL');
-  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
+  const [orderItems, setOrderItems] = useState<OrderItem[]>(
+    initialItems?.map(i => ({ ...i, isExisting: true })) || []
+  );
+
+  // Sync with initialItems when they change (e.g. after an update or late arrival)
+  useEffect(() => {
+    if (initialItems && initialItems.length > 0) {
+      setOrderItems(initialItems.map(i => ({ ...i, isExisting: true })));
+    }
+  }, [initialItems]);
 
   const reserveMutation = useCreateReservation();
+  const updateMutation = useUpdateReservation();
+
+  const isUpdateMode = !!sessionId;
+  const isPending = reserveMutation.isPending || updateMutation.isPending;
 
   // Debounce search input for server-side filtering
   useEffect(() => {
@@ -76,13 +98,24 @@ export function OrderBuilder({ tableId, tableName, onComplete }: OrderBuilderPro
     }));
   };
 
-  const handleCreateOrder = () => {
+  const handleSubmitOrder = () => {
     if (orderItems.length === 0) return;
-    reserveMutation.mutate({ tableId, items: orderItems }, {
-      onSuccess: () => {
-        onComplete();
-      }
-    });
+
+    if (isUpdateMode) {
+      updateMutation.mutate({
+        sessionId: sessionId!,
+        payload: { items: orderItems.map(i => ({ menuId: i.menuId, quantity: i.quantity })) }
+      }, {
+        onSuccess: () => onComplete()
+      });
+    } else {
+      reserveMutation.mutate({ 
+        tableId, 
+        items: orderItems.map(i => ({ menuId: i.menuId, quantity: i.quantity })) 
+      }, {
+        onSuccess: () => onComplete()
+      });
+    }
   };
 
   const total = orderItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
@@ -206,7 +239,14 @@ export function OrderBuilder({ tableId, tableName, onComplete }: OrderBuilderPro
               <div key={item.menuId} className="flex flex-col gap-4 bg-background border border-border p-5 rounded-2xl shadow-sm hover:shadow-md transition-all animate-in slide-in-from-right-4">
                 <div className="flex justify-between items-start gap-4">
                   <div className="space-y-1 flex-1">
-                    <div className="font-bold text-base leading-tight text-foreground">{item.name}</div>
+                    <div className="font-bold text-base leading-tight text-foreground flex items-center gap-2">
+                      {item.name}
+                      {item.isExisting && (
+                        <span className="bg-amber-500/10 text-amber-500 text-[9px] font-black px-1.5 py-0.5 rounded border border-amber-500/20 uppercase tracking-widest">
+                          Ordered
+                        </span>
+                      )}
+                    </div>
                     <div className="text-xs font-medium text-muted-foreground bg-muted inline-block px-2 py-0.5 rounded-md">
                       Rs {item.price} / ea
                     </div>
@@ -255,11 +295,11 @@ export function OrderBuilder({ tableId, tableName, onComplete }: OrderBuilderPro
 
           <Button
             className="w-full h-14 rounded-2xl text-sm font-bold uppercase tracking-widest gap-2 shadow-xl shadow-primary/20 transition-all hover:translate-y-[-2px] hover:shadow-primary/30"
-            disabled={orderItems.length === 0 || reserveMutation.isPending}
-            onClick={handleCreateOrder}
+            disabled={orderItems.length === 0 || isPending}
+            onClick={handleSubmitOrder}
           >
             <Send className="h-4 w-4" />
-            {reserveMutation.isPending ? 'PROCESSING...' : 'DISPATCH ORDER'}
+            {isPending ? 'PROCESSING...' : (isUpdateMode ? 'UPDATE ORDER' : 'DISPATCH ORDER')}
           </Button>
         </div>
       </div>

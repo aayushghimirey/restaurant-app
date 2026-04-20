@@ -30,3 +30,12 @@ export interface CreateReservationRequest {
   tableId: string;
   items: ReservationItemRequest[];
 }
+
+export interface UpdateReservationItemRequest {
+  menuId: string;
+  quantity: number;
+}
+
+export interface UpdateOrderItemCommand {
+  items: UpdateReservationItemRequest[];
+}

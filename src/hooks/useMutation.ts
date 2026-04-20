@@ -1,9 +1,12 @@
 import { useState } from 'react';
+import { useBusinessStore } from '@/features/business-details/store/businessStore';
+import toast from 'react-hot-toast';
 
 type MutationOptions<TData, TVariables> = {
   mutationFn: (variables: TVariables) => Promise<TData>;
   onSuccess?: (data: TData, variables: TVariables) => void;
   onError?: (error: Error, variables: TVariables) => void;
+  bypassGlobalBlock?: boolean;
 };
 
 export function useMutation<TData = unknown, TVariables = void>(
@@ -16,6 +19,11 @@ export function useMutation<TData = unknown, TVariables = void>(
     variables: TVariables,
     mutateOptions?: { onSuccess?: () => void; onError?: () => void }
   ) => {
+    if (!options.bypassGlobalBlock && useBusinessStore.getState().isBusinessDetailsMissing) {
+      toast.error("Operations are disabled until Business Details are complete");
+      return;
+    }
+
     setIsPending(true);
     setError(null);
     try {

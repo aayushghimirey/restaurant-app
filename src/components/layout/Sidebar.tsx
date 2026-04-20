@@ -72,7 +72,7 @@ export function Sidebar({
       if (role === "SUPER_ADMIN") {
         return node.roles?.includes("SUPER_ADMIN")
       }
-      
+
       // For other roles, hide items marked for SUPER_ADMIN
       if (node.roles?.includes("SUPER_ADMIN")) {
         return false
@@ -176,7 +176,7 @@ export function Sidebar({
           )}
         >
           <div className="h-16 px-6 flex items-center border-b border-white/5">
-             <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
               <div className="h-8 w-8 rounded-xl bg-primary flex items-center justify-center">
                 <LayoutDashboard className="h-4 w-4 text-white" />
               </div>

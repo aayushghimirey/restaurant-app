@@ -4,6 +4,7 @@ import { invalidateKey } from "@/lib/eventBus";
 import { useWebSocket } from "@/providers/WebSocketProvider";
 import { useEffect } from "react";
 import { invoiceKeys } from "../keys";
+import toast from "react-hot-toast";
 
 export function useInvoiceWebSocket() {
   const { invoiceClient, invoiceStatus } = useWebSocket();
@@ -28,6 +29,10 @@ export function useInvoiceWebSocket() {
 
           // Finances are affected by invoice completion or cancellation
           invalidateKey(financeKeys.all);
+
+          if (body.status === "PENDING" || body.payload?.status === "PENDING") {
+            toast.success("New invoice received!");
+          }
         } catch (err) {
           console.error("Failed to parse Invoice WebSocket message:", err);
           // Fallback: invalidate invoice keys at minimum

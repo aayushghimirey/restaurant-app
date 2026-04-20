@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import { Plus, LayoutGrid, RotateCcw, Table as TableIcon } from 'lucide-react';
-import { useTables, useCreateTable, useOrderWebSocket } from '../api';
+import { useTables, useCreateTable, useOrderWebSocket, useReservations } from '../api';
 import { useInvoiceWebSocket } from '@/features/invoices/api/websockets/useInvoiceWebSocket';
+import { useMenus } from '@/features/menus/api';
+import { ReservationStatus } from '@/types/reservations';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { TableGrid } from './TableGrid';
 import { OrderBuilder } from './OrderBuilder';
 import { SkeletonCard } from "@/components/ui/SkeletonCard";
+import { motion, AnimatePresence } from 'framer-motion';
 
 import {
   Dialog,
@@ -20,12 +23,26 @@ import {
 
 export default function OrdersPage() {
   const { data: tables, isLoading: loadingTables } = useTables();
+  const { data: pendingRes } = useReservations(ReservationStatus.PENDING);
+  const { data: updatedRes } = useReservations(ReservationStatus.UPDATED);
+  const { data: menusData } = useMenus({ size: 500 });
+  
   const [isAddingTable, setIsAddingTable] = useState(false);
   const [activeTableId, setActiveTableId] = useState<string | null>(null);
+  
   useOrderWebSocket();
   useInvoiceWebSocket();
 
   const activeTable = tables?.find(t => t.id === activeTableId);
+  
+  // Combine all active reservations (Pending + Updated)
+  const activeReservations = [
+    ...(pendingRes?.data || []),
+    ...(updatedRes?.data || [])
+  ];
+  
+  const activeRes = activeReservations.find(r => r.tableId === activeTableId);
+  const menus = menusData?.data || [];
 
   return (
     <div className="p-6 md:p-8 space-y-8 animate-in max-w-[1600px] mx-auto">
@@ -99,46 +116,83 @@ export default function OrdersPage() {
           </section>
 
           <section className="space-y-4">
+          <AnimatePresence mode="wait">
             {activeTableId ? (
-              <div className="bg-card border border-border/50 shadow-2xl rounded-[2rem] animate-in fade-in slide-in-from-bottom-4 relative overflow-hidden min-h-[500px] flex flex-col">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 border-b border-border bg-muted/20 relative z-10">
-                  <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/20">
-                      <TableIcon className="h-5 w-5" />
+              <motion.div 
+                key="order-builder"
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+                className="bg-card border border-border/50 shadow-2xl rounded-[2.5rem] relative overflow-hidden min-h-[600px] flex flex-col"
+              >
+                {/* Decorative background elements */}
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] pointer-events-none -translate-y-1/2 translate-x-1/2" />
+                <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-primary/3 rounded-full blur-[80px] pointer-events-none translate-y-1/2 -translate-x-1/2" />
+
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-8 border-b border-border bg-background/50 backdrop-blur-xl relative z-10">
+                  <div className="flex items-center gap-5">
+                    <div className="h-14 w-14 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center shadow-xl shadow-primary/20 rotate-3 group-hover:rotate-0 transition-transform">
+                      <TableIcon className="h-6 w-6" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold tracking-tight">Process Table Order</h3>
-                      <p className="text-muted-foreground text-sm font-medium mt-0.5 flex items-center gap-2">
-                        Editing <span className="text-primary font-bold">{activeTable?.name}</span>
-                        <span className="opacity-30">•</span> {activeTable?.location}
+                      <h3 className="text-2xl font-black tracking-tight text-foreground">
+                        {activeRes ? 'Modify Active Order' : 'Create New Order'}
+                      </h3>
+                      <p className="text-muted-foreground text-[11px] font-black uppercase tracking-[0.2em] mt-1 flex items-center gap-2">
+                        Station: <span className="text-primary">{activeTable?.name}</span>
+                        <span className="h-1 w-1 rounded-full bg-border" /> 
+                        {activeTable?.location}
                       </p>
                     </div>
                   </div>
                   <Button
                     variant="outline"
-                    className="rounded-full px-6 font-semibold"
+                    className="rounded-xl px-8 h-12 font-black text-[10px] uppercase tracking-widest border-border hover:bg-muted hover:text-foreground transition-all shadow-sm"
                     onClick={() => setActiveTableId(null)}
                   >
-                    Close Order
+                    Cancel Session
                   </Button>
                 </div>
-                <OrderBuilder
-                  tableId={activeTableId}
-                  tableName={activeTable?.name || ""}
-                  onComplete={() => setActiveTableId(null)}
-                />
-              </div>
-            ) : (
-              <div className="h-[400px] flex flex-col items-center justify-center text-center bg-muted/30 border-2 border-dashed border-border rounded-[2rem]">
-                <div className="p-6 rounded-full bg-background shadow-sm border border-border mb-5">
-                  <LayoutGrid className="h-8 w-8 text-muted-foreground/50" />
+
+                <div className="flex-1 relative z-10">
+                  <OrderBuilder
+                    key={`${activeTableId}-${activeRes?.sessionId || 'new'}-${activeRes?.items?.length || 0}`}
+                    tableId={activeTableId}
+                    tableName={activeTable?.name || ""}
+                    sessionId={activeRes?.sessionId}
+                    initialItems={activeRes?.items.map(item => {
+                      const menu = menus.find(m => m.id === item.menuItemId);
+                      return {
+                        menuId: item.menuItemId,
+                        name: menu?.name || "Unknown Item",
+                        price: item.price,
+                        quantity: item.quantity
+                      };
+                    })}
+                    onComplete={() => setActiveTableId(null)}
+                  />
                 </div>
-                <h4 className="text-lg font-bold tracking-tight mb-2">Interactive Floor Plan</h4>
-                <p className="text-muted-foreground text-sm font-medium max-w-sm">
-                  Select a table from above to start creating or modifying its active order payload.
+              </motion.div>
+            ) : (
+              <motion.div 
+                key="empty-state"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="h-[500px] flex flex-col items-center justify-center text-center bg-muted/20 border-2 border-dashed border-border/50 rounded-[3rem] relative overflow-hidden group"
+              >
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,var(--primary-muted)_0%,transparent_100%)] opacity-20 pointer-events-none" />
+                <div className="p-8 rounded-[2rem] bg-background shadow-xl border border-border mb-8 group-hover:scale-110 transition-transform duration-500">
+                  <LayoutGrid className="h-10 w-10 text-primary/40" />
+                </div>
+                <h4 className="text-xl font-black tracking-tight mb-3 text-foreground uppercase tracking-widest">Interactive Floor Manager</h4>
+                <p className="text-muted-foreground text-xs font-bold max-w-sm leading-relaxed opacity-60">
+                  Real-time command center. Select an available or reserved table above to begin transaction processing.
                 </p>
-              </div>
+              </motion.div>
             )}
+          </AnimatePresence>
           </section>
         </div>
       )}

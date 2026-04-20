@@ -1,6 +1,6 @@
 import { useMemo } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
-import { Menu as MenuIcon, User, Settings, LogOut, Shield } from "lucide-react"
+import { Menu as MenuIcon, User, Settings, LogOut, Shield, Building2 } from "lucide-react"
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { useWebSocket } from "@/providers/WebSocketProvider"
@@ -103,9 +103,12 @@ export function Header({ onOpenMobileSidebar }: { onOpenMobileSidebar?: () => vo
                 <p className="text-[8px] font-medium text-primary uppercase tracking-widest">{role}</p>
               </div>
 
-              <DropdownMenu.Item className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-xl outline-none cursor-pointer hover:bg-white/5 text-muted-foreground hover:text-white transition-colors">
-                <User className="h-4 w-4" />
-                Profile Details
+              <DropdownMenu.Item 
+                className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-xl outline-none cursor-pointer hover:bg-white/5 text-muted-foreground hover:text-white transition-colors"
+                onSelect={() => navigate('/business-details')}
+              >
+                <Building2 className="h-4 w-4" />
+                Business Details
               </DropdownMenu.Item>
               <DropdownMenu.Item className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-xl outline-none cursor-pointer hover:bg-white/5 text-muted-foreground hover:text-white transition-colors">
                 <Settings className="h-4 w-4" />

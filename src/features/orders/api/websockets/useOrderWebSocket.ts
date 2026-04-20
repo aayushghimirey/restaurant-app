@@ -3,6 +3,7 @@ import { useWebSocket } from "@/providers/WebSocketProvider";
 import { invalidateKey } from "@/lib/eventBus";
 import { financeKeys } from "@/features/finances/api/keys";
 import { orderKeys } from "../keys";
+import toast from "react-hot-toast";
 
 export function useOrderWebSocket() {
   const { orderClient, orderStatus } = useWebSocket();
@@ -18,6 +19,10 @@ export function useOrderWebSocket() {
         invalidateKey(orderKeys.reservationsBase);
         invalidateKey(orderKeys.tables);
         invalidateKey(financeKeys.all);
+
+        if (body.status === "PENDING" || body.payload?.status === "PENDING") {
+          toast.success("New order received!");
+        }
       } catch (err) {
         console.error("Failed to parse Order WebSocket message:", err);
         invalidateKey(orderKeys.all);
@@ -31,6 +36,10 @@ export function useOrderWebSocket() {
         
         invalidateKey(orderKeys.reservationsBase);
         invalidateKey(orderKeys.tables);
+
+        if (body.status === "PENDING" || body.payload?.status === "PENDING") {
+          toast.success("New reservation received!");
+        }
       } catch (err) {
         console.error("Failed to parse Reservation WebSocket message:", err);
         invalidateKey(orderKeys.all);

@@ -1,12 +1,19 @@
 import { useState } from "react";
 import { CalendarDays, Clock, Eye, Table as TableIcon, Utensils, Wifi, WifiOff } from "lucide-react";
-import { useReservations, useOrderWebSocket, useTables } from "../api";
+import { useReservations, useOrderWebSocket, useTables, useCancelReservation, useUpdateReservation } from "../api";
 import { ReservationStatus } from "@/types/reservations";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { SkeletonCard } from "@/components/ui/SkeletonCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { cn } from "@/lib/utils";
 import { useMenus } from "@/features/menus/api";
+import { OrderBuilder } from "./OrderBuilder";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/Dialog";
 
 const STATUS_TABS = [
   { label: "Pending", value: ReservationStatus.PENDING },
@@ -25,6 +32,18 @@ export default function ReservationsPage() {
   const { data: menusData } = useMenus({ size: 200 });
   const menus = menusData?.data || [];
   const { status: wsStatus } = useOrderWebSocket();
+  const cancelMutation = useCancelReservation();
+  
+  const [editingSession, setEditingSession] = useState<string | null>(null);
+
+  const handleCancelReservation = (sessionId: string) => {
+    if (window.confirm("Are you sure you want to cancel this order?")) {
+      cancelMutation.mutate(sessionId);
+    }
+  };
+
+  const activeRes = reservations.find(r => r.sessionId === editingSession);
+  const activeTable = tables?.find(t => t.id === activeRes?.tableId);
 
   return (
     <div className="p-6 md:p-8 space-y-8 animate-in max-w-[1400px] mx-auto">
@@ -139,6 +158,16 @@ export default function ReservationsPage() {
                        })}
                     </div>
                   </div>
+
+                  {res.status !== ReservationStatus.CANCELLED && res.status !== ReservationStatus.COMPLETED && (
+                    <button
+                      onClick={() => setEditingSession(res.sessionId)}
+                      className="w-full py-2.5 rounded-xl border border-primary/20 bg-primary/5 text-primary text-[10px] font-black uppercase tracking-widest hover:bg-primary/10 transition-all flex items-center justify-center gap-2"
+                    >
+                      <Utensils className="h-3 w-3" />
+                      Add / Edit Items
+                    </button>
+                  )}
                 </div>
 
                 <div className="mt-auto p-5 bg-muted/20 border-t border-border flex items-center justify-between">
@@ -148,8 +177,19 @@ export default function ReservationsPage() {
                       {new Date(res.reservationTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
-                  <div className="h-8 w-8 rounded-full border border-border bg-background flex items-center justify-center text-[10px] font-black text-foreground shadow-sm">
-                     {res.items.reduce((acc, i) => acc + i.quantity, 0)}
+                  <div className="flex items-center gap-3">
+                    {res.status !== ReservationStatus.CANCELLED && res.status !== ReservationStatus.COMPLETED && (
+                      <button
+                        onClick={() => handleCancelReservation(res.sessionId)}
+                        disabled={cancelMutation.isPending}
+                        className="text-[10px] font-black uppercase tracking-widest text-destructive hover:text-destructive/80 transition-colors px-3 py-1.5 rounded-lg hover:bg-destructive/5 disabled:opacity-50"
+                      >
+                        Cancel Order
+                      </button>
+                    )}
+                    <div className="h-8 w-8 rounded-full border border-border bg-background flex items-center justify-center text-[10px] font-black text-foreground shadow-sm">
+                      {res.items.reduce((acc, i) => acc + i.quantity, 0)}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -163,6 +203,46 @@ export default function ReservationsPage() {
           description={`There are no ${activeTab.toLowerCase()} orders at the moment. Try matching your filters.`}
         />
       )}
+
+      {/* Edit Order Dialog */}
+      <Dialog open={!!editingSession} onOpenChange={(open) => !open && setEditingSession(null)}>
+        <DialogContent className="max-w-[1200px] p-0 overflow-hidden bg-background border-border shadow-2xl rounded-[2rem]">
+          <div className="p-0 flex flex-col h-[80vh]">
+            <div className="p-6 border-b border-border bg-muted/20 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="h-10 w-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
+                  <Utensils className="h-5 w-5" />
+                </div>
+                <div>
+                  <DialogTitle className="text-xl font-bold tracking-tight">Edit Order Items</DialogTitle>
+                  <p className="text-muted-foreground text-xs font-semibold">
+                    Updating Table <span className="text-primary">{activeTable?.name}</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="flex-1 overflow-hidden flex flex-col">
+              {activeRes && (
+                <OrderBuilder
+                  tableId={activeRes.tableId}
+                  tableName={activeTable?.name || ""}
+                  sessionId={activeRes.sessionId}
+                  initialItems={activeRes.items.map(item => {
+                    const menu = menus.find(m => m.id === item.menuItemId);
+                    return {
+                      menuId: item.menuItemId,
+                      name: menu?.name || "Unknown Item",
+                      price: item.price,
+                      quantity: item.quantity
+                    };
+                  })}
+                  onComplete={() => setEditingSession(null)}
+                />
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

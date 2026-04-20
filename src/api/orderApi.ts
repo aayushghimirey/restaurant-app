@@ -4,7 +4,8 @@ import type { TableResponse, CreateTableRequest } from "@/features/orders/types"
 import type { 
   ReservationResponse, 
   CreateReservationRequest,
-  ReservationStatus 
+  ReservationStatus,
+  UpdateOrderItemCommand 
 } from "@/types/reservations"
 
 // Table Management
@@ -31,4 +32,13 @@ export const getReservations = async (status: ReservationStatus): Promise<Pagina
 export const createReservation = async (payload: CreateReservationRequest): Promise<ReservationResponse> => {
   const { data } = await axiosInstance.post<ApiResponse<ReservationResponse>>("/reservations", payload)
   return data.data
+}
+
+export const updateReservation = async (sessionId: string, payload: UpdateOrderItemCommand): Promise<ReservationResponse> => {
+  const { data } = await axiosInstance.put<ApiResponse<ReservationResponse>>(`/reservations/${sessionId}`, payload)
+  return data.data
+}
+
+export const cancelReservation = async (sessionId: string): Promise<void> => {
+  await axiosInstance.patch<ApiResponse<void>>(`/reservations/${sessionId}/cancel`)
 }

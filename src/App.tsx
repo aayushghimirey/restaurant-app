@@ -15,6 +15,8 @@ import CreatePurchasePage from './features/purchases/components/CreatePurchasePa
 import AdministrationPage from './features/administration/components/AdministrationPage'
 import FinancesPage from './features/finances/components/FinancesPage'
 import TenantRegistrationPage from './features/tenants/components/TenantRegistrationPage'
+import BusinessDetailPage from './features/business-details/components/BusinessDetailPage'
+import { BusinessDetailGuard } from './components/auth/BusinessDetailGuard'
 import { useAuthStore } from './features/auth/store/authStore'
 import { WebSocketProvider } from './providers/WebSocketProvider'
 
@@ -39,18 +41,21 @@ function App() {
 
               {/* Regular Tenant Admin/User Routes */}
               <Route element={<ProtectedRoute excludeRole="SUPER_ADMIN" />}>
-                <Route path="vendors" element={<VendorsPage />} />
-                <Route path="inventory" element={<InventoryPage />} />
-                <Route path="inventory/transactions/:variantId?" element={<InventoryTransactionsPage />} />
-                <Route path="menus" element={<MenusPage />} />
-                <Route path="orders" element={<OrdersPage />} />
-                <Route path="reservations" element={<ReservationsPage />} />
-                <Route path="invoices" element={<InvoicesPage />} />
-                <Route path="invoices/history" element={<InvoiceHistoryPage />} />
-                <Route path="purchases" element={<PurchasesPage />} />
-                <Route path="purchases/new" element={<CreatePurchasePage />} />
-                <Route path="finances" element={<FinancesPage />} />
-                <Route path="administration" element={<AdministrationPage />} />
+                <Route element={<BusinessDetailGuard />}>
+                  <Route path="vendors" element={<VendorsPage />} />
+                  <Route path="inventory" element={<InventoryPage />} />
+                  <Route path="inventory/transactions/:variantId?" element={<InventoryTransactionsPage />} />
+                  <Route path="menus" element={<MenusPage />} />
+                  <Route path="orders" element={<OrdersPage />} />
+                  <Route path="reservations" element={<ReservationsPage />} />
+                  <Route path="invoices" element={<InvoicesPage />} />
+                  <Route path="invoices/history" element={<InvoiceHistoryPage />} />
+                  <Route path="purchases" element={<PurchasesPage />} />
+                  <Route path="purchases/new" element={<CreatePurchasePage />} />
+                  <Route path="finances" element={<FinancesPage />} />
+                  <Route path="administration" element={<AdministrationPage />} />
+                  <Route path="business-details" element={<BusinessDetailPage />} />
+                </Route>
               </Route>
               
               {/* Super Admin Only Routes */}
