@@ -1,22 +1,21 @@
-import { useState } from "react";
-import { CalendarDays, Clock, Eye, Table as TableIcon, Utensils, Wifi, WifiOff, Receipt, AlertTriangle, Loader2 } from "lucide-react";
-import { useReservations, useOrderWebSocket, useTables, useCancelReservation, useUpdateReservation } from "../api";
-import { ReservationStatus } from "@/types/reservations";
-import { StatusBadge } from "@/components/ui/StatusBadge";
-import { SkeletonCard } from "@/components/ui/SkeletonCard";
-import { EmptyState } from "@/components/ui/EmptyState";
-import { cn } from "@/lib/utils";
-import { useMenus } from "@/features/menus/api";
-import { OrderBuilder } from "./OrderBuilder";
-import { Link } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
+  DialogTitle
 } from "@/components/ui/Dialog";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { SkeletonCard } from "@/components/ui/SkeletonCard";
+import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Button } from "@/components/ui/button";
+import { useMenus } from "@/features/menus/api";
+import { cn } from "@/lib/utils";
+import { useWebSocket } from "@/providers/WebSocketProvider";
+import { ReservationStatus } from "@/types/reservations";
+import { AlertTriangle, CalendarDays, Clock, Eye, Loader2, Receipt, Table as TableIcon, Utensils, Wifi, WifiOff } from "lucide-react";
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { useCancelReservation, useReservations, useTables } from "../api";
+import { OrderBuilder } from "./OrderBuilder";
 
 const STATUS_TABS = [
   { label: "Pending", value: ReservationStatus.PENDING },
@@ -34,7 +33,7 @@ export default function ReservationsPage() {
   const { data: tables } = useTables();
   const { data: menusData } = useMenus({ size: 200 });
   const menus = menusData?.data || [];
-  const { status: wsStatus } = useOrderWebSocket();
+  const { orderStatus: wsStatus } = useWebSocket();
   const cancelMutation = useCancelReservation();
   
   const [editingSession, setEditingSession] = useState<string | null>(null);

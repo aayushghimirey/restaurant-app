@@ -8,7 +8,8 @@ import { cn } from "@/lib/utils";
 import { Clock, Receipt, Wifi, WifiOff, Printer, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "react-hot-toast";
-import { useCompleteInvoice, useInvoiceWebSocket, usePendingInvoices, getPrintInvoiceHtml } from '../api';
+import { useCompleteInvoice, usePendingInvoices, getPrintInvoiceHtml } from '../api';
+import { useWebSocket } from '@/providers/WebSocketProvider';
 import { SettleInvoiceSheet } from './SettleInvoiceSheet';
 import { CreateInvoiceCommand, Invoice } from '../types';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/Dialog';
@@ -16,7 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 export default function InvoicesPage() {
   const { data: pending, isLoading: loadingPending } = usePendingInvoices();
   const { data: tables } = useTables();
-  const { status: wsStatus } = useInvoiceWebSocket();
+  const { invoiceStatus: wsStatus } = useWebSocket();
   const mutation = useCompleteInvoice();
 
   const [settleInvoice, setSettleInvoice] = useState<Invoice | null>(null);

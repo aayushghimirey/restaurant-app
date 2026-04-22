@@ -12,31 +12,27 @@ export function useInvoiceWebSocket() {
   useEffect(() => {
     if (!invoiceClient || invoiceStatus !== "OPEN") return;
 
+    const refreshAll = () => {
+      invalidateKey(invoiceKeys.all);
+      invalidateKey(orderKeys.reservationsBase);
+      invalidateKey(orderKeys.tables);
+      invalidateKey(financeKeys.all);
+    };
+
     const subscription = invoiceClient.subscribe(
       "/user/queue/invoices",
       (msg) => {
         try {
           const body = JSON.parse(msg.body);
           console.log("Invoice WS Message:", body);
-
-          // Update invoice queries
-          invalidateKey(invoiceKeys.all);
-
-          // Handle real-time updates for reservations and orders
-          // When an invoice is created/updated/completed, it often affects reservation status
-          invalidateKey(orderKeys.reservationsBase);
-          invalidateKey(orderKeys.tables);
-
-          // Finances are affected by invoice completion or cancellation
-          invalidateKey(financeKeys.all);
+          refreshAll();
 
           if (body.status === "PENDING" || body.payload?.status === "PENDING") {
             toast.success("New invoice received!");
           }
         } catch (err) {
           console.error("Failed to parse Invoice WebSocket message:", err);
-          // Fallback: invalidate invoice keys at minimum
-          invalidateKey(invoiceKeys.all);
+          refreshAll();
         }
       },
     );

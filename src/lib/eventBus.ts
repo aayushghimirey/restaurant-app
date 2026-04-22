@@ -1,6 +1,24 @@
+const debounceMap = new Map<string, number>();
+
 export const invalidateKey = (key: string | readonly string[]) => {
-  const event = new CustomEvent('app-invalidate-key', { detail: { key } });
-  window.dispatchEvent(event);
+  const serializeKey = (k: string | readonly unknown[]) => 
+    Array.isArray(k) ? k[0] : k;
+  
+  const keyStr = String(serializeKey(key));
+
+  // Clear existing timeout for this key if it exists
+  if (debounceMap.has(keyStr)) {
+    window.clearTimeout(debounceMap.get(keyStr));
+  }
+
+  // Set a new timeout to dispatch the event
+  const timeoutId = window.setTimeout(() => {
+    const event = new CustomEvent('app-invalidate-key', { detail: { key } });
+    window.dispatchEvent(event);
+    debounceMap.delete(keyStr);
+  }, 50); // 50ms debounce window
+
+  debounceMap.set(keyStr, timeoutId);
 };
 
 export const subscribeToInvalidation = (key: string | readonly string[], callback: () => void) => {

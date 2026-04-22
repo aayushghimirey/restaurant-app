@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Plus, LayoutGrid, RotateCcw, Table as TableIcon } from 'lucide-react';
-import { useTables, useCreateTable, useOrderWebSocket, useReservations } from '../api';
-import { useInvoiceWebSocket } from '@/features/invoices/api/websockets/useInvoiceWebSocket';
+import { useTables, useCreateTable, useReservations } from '../api';
 import { useMenus } from '@/features/menus/api';
 import { ReservationStatus } from '@/types/reservations';
 import { Button } from '@/components/ui/button';
@@ -30,8 +29,7 @@ export default function OrdersPage() {
   const [isAddingTable, setIsAddingTable] = useState(false);
   const [activeTableId, setActiveTableId] = useState<string | null>(null);
   
-  useOrderWebSocket();
-  useInvoiceWebSocket();
+
 
   const activeTable = tables?.find(t => t.id === activeTableId);
   

@@ -66,10 +66,10 @@ export default function LoginPage() {
             <Terminal className="w-8 h-8 text-primary" />
           </motion.div>
           <h1 className="text-3xl font-bold tracking-tight text-white mb-2">
-            Antigravity <span className="text-primary text-sm align-top ml-1">v2</span>
+            STS_HOPITALITY <span className="text-primary text-sm align-top ml-1">v2</span>
           </h1>
           <p className="text-muted-foreground text-sm">
-            Restaurant & Retail Management System
+            Restaurant & Inventory Management System
           </p>
         </div>
 

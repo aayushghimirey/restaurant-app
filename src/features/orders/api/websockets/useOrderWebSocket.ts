@@ -3,6 +3,7 @@ import { useWebSocket } from "@/providers/WebSocketProvider";
 import { invalidateKey } from "@/lib/eventBus";
 import { financeKeys } from "@/features/finances/api/keys";
 import { orderKeys } from "../keys";
+import { invoiceKeys } from "@/features/invoices/api/keys";
 import toast from "react-hot-toast";
 
 export function useOrderWebSocket() {
@@ -11,14 +12,18 @@ export function useOrderWebSocket() {
   useEffect(() => {
     if (!orderClient || orderStatus !== "OPEN") return;
 
+    const refreshAll = () => {
+      invalidateKey(orderKeys.reservationsBase);
+      invalidateKey(orderKeys.tables);
+      invalidateKey(invoiceKeys.all);
+      invalidateKey(financeKeys.all);
+    };
+
     const orderSub = orderClient.subscribe("/user/queue/orders", (msg) => {
       try {
         const body = JSON.parse(msg.body);
         console.log("Order WS Message:", body);
-        
-        invalidateKey(orderKeys.reservationsBase);
-        invalidateKey(orderKeys.tables);
-        invalidateKey(financeKeys.all);
+        refreshAll();
 
         if (body.status === "PENDING" || body.payload?.status === "PENDING") {
           toast.success("New order received!");
@@ -33,9 +38,7 @@ export function useOrderWebSocket() {
       try {
         const body = JSON.parse(msg.body);
         console.log("Reservation WS Message:", body);
-        
-        invalidateKey(orderKeys.reservationsBase);
-        invalidateKey(orderKeys.tables);
+        refreshAll();
 
         if (body.status === "PENDING" || body.payload?.status === "PENDING") {
           toast.success("New reservation received!");

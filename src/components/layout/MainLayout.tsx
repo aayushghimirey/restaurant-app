@@ -6,12 +6,18 @@ import { Header } from "./Header"
 import { Sidebar } from "./Sidebar"
 import { useBusinessStore } from "@/features/business-details/store/businessStore"
 import { Button } from "@/components/ui/button"
+import { useOrderWebSocket } from "@/features/orders/api/websockets/useOrderWebSocket"
+import { useInvoiceWebSocket } from "@/features/invoices/api/websockets/useInvoiceWebSocket"
 
 export function MainLayout() {
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const isBusinessDetailsMissing = useBusinessStore((s) => s.isBusinessDetailsMissing)
   const navigate = useNavigate()
   const location = useLocation()
+
+  // Initialize Global WebSockets
+  useOrderWebSocket()
+  useInvoiceWebSocket()
 
   return (
     <div className="h-screen overflow-hidden bg-background text-foreground flex">
