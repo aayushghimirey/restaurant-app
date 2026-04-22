@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CalendarDays, Clock, Eye, Table as TableIcon, Utensils, Wifi, WifiOff } from "lucide-react";
+import { CalendarDays, Clock, Eye, Table as TableIcon, Utensils, Wifi, WifiOff, Receipt, AlertTriangle, Loader2 } from "lucide-react";
 import { useReservations, useOrderWebSocket, useTables, useCancelReservation, useUpdateReservation } from "../api";
 import { ReservationStatus } from "@/types/reservations";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -8,12 +8,15 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { cn } from "@/lib/utils";
 import { useMenus } from "@/features/menus/api";
 import { OrderBuilder } from "./OrderBuilder";
+import { Link } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/Dialog";
+import { Button } from "@/components/ui/button";
 
 const STATUS_TABS = [
   { label: "Pending", value: ReservationStatus.PENDING },
@@ -35,10 +38,13 @@ export default function ReservationsPage() {
   const cancelMutation = useCancelReservation();
   
   const [editingSession, setEditingSession] = useState<string | null>(null);
+  const [cancellingSessionId, setCancellingSessionId] = useState<string | null>(null);
 
-  const handleCancelReservation = (sessionId: string) => {
-    if (window.confirm("Are you sure you want to cancel this order?")) {
-      cancelMutation.mutate(sessionId);
+  const handleConfirmCancel = () => {
+    if (cancellingSessionId) {
+      cancelMutation.mutate(cancellingSessionId, {
+        onSuccess: () => setCancellingSessionId(null),
+      });
     }
   };
 
@@ -102,18 +108,18 @@ export default function ReservationsPage() {
           {reservations.map((res, parentIdx) => {
             const table = tables?.find(t => t.id === res.tableId);
             return (
-              <div key={res.sessionId || `res-${parentIdx}`} className="bg-card shadow-sm hover:shadow-xl rounded-[1.5rem] overflow-hidden flex flex-col border border-border hover:border-primary/40 transition-all duration-500 group">
+              <div key={res.sessionId || `res-${parentIdx}`} className="bg-card shadow-sm hover:shadow-2xl rounded-[1.8rem] overflow-hidden flex flex-col border border-border hover:border-primary/30 transition-all duration-500 group">
                 <div className="p-6 space-y-6">
                   <div className="flex justify-between items-start">
                     <div className="flex gap-4">
-                      <div className="h-12 w-12 rounded-2xl bg-muted/50 flex items-center justify-center border border-border group-hover:border-primary/30 group-hover:bg-primary/5 transition-colors">
-                        <TableIcon className="h-5 w-5 text-primary/70" />
+                      <div className="h-12 w-12 rounded-2xl bg-muted/50 flex items-center justify-center border border-border group-hover:border-primary/40 group-hover:bg-primary/10 transition-all duration-500 shadow-sm">
+                        <TableIcon className="h-6 w-6 text-primary/80" />
                       </div>
                       <div>
                         <h4 className="text-lg font-black text-foreground leading-none mb-1">
                           {table?.name || "Unassigned"}
                         </h4>
-                        <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">
+                        <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em]">
                           {table?.location || "Main Hall"}
                         </p>
                       </div>
@@ -128,30 +134,30 @@ export default function ReservationsPage() {
                     />
                   </div>
 
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground">
+                      <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground bg-muted/30 px-2.5 py-1 rounded-lg">
                         <Utensils className="h-3 w-3" />
                         Order Breakdown
                       </div>
-                      <div className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-muted/50 text-foreground">
-                        Total Rs {res.billAmount}
+                      <div className="text-[11px] font-black text-foreground">
+                        Rs {res.billAmount.toLocaleString()}
                       </div>
                     </div>
                     
-                    <div className="space-y-2 max-h-[140px] overflow-y-auto custom-scrollbar pr-2 bg-muted/10 p-3 rounded-xl border border-border/50">
+                    <div className="space-y-2 max-h-[160px] overflow-y-auto custom-scrollbar pr-2 bg-muted/5 p-3.5 rounded-2xl border border-border/40 group-hover:bg-muted/10 transition-colors">
                        {res.items.map((item, idx) => {
                          const menu = menus.find(m => m.id === item.menuItemId);
                          return (
-                           <div key={`${item.menuItemId}-${idx}`} className="flex justify-between items-center text-xs pb-2 border-b border-border/50 last:border-0 last:pb-0">
+                           <div key={`${item.menuItemId}-${idx}`} className="flex justify-between items-center text-xs pb-2.5 border-b border-border/30 last:border-0 last:pb-0">
                              <div className="flex items-center gap-3">
-                               <span className="text-foreground bg-muted font-black px-1.5 py-0.5 rounded text-[10px]">
+                               <span className="text-foreground bg-muted-foreground/10 font-bold px-1.5 py-0.5 rounded text-[9px]">
                                  {item.quantity}×
                                </span>
-                               <span className="text-foreground font-semibold line-clamp-1">{menu?.name || "Unknown Item"}</span>
+                               <span className="text-foreground font-bold line-clamp-1 text-[11px]">{menu?.name || "Unknown Item"}</span>
                              </div>
-                             <span className="text-muted-foreground font-bold shrink-0">
-                               Rs {item.price * item.quantity}
+                             <span className="text-muted-foreground font-bold text-[10px] shrink-0">
+                               Rs {(item.price * item.quantity).toLocaleString()}
                              </span>
                            </div>
                          )
@@ -159,35 +165,52 @@ export default function ReservationsPage() {
                     </div>
                   </div>
 
-                  {res.status !== ReservationStatus.CANCELLED && res.status !== ReservationStatus.COMPLETED && (
-                    <button
-                      onClick={() => setEditingSession(res.sessionId)}
-                      className="w-full py-2.5 rounded-xl border border-primary/20 bg-primary/5 text-primary text-[10px] font-black uppercase tracking-widest hover:bg-primary/10 transition-all flex items-center justify-center gap-2"
-                    >
-                      <Utensils className="h-3 w-3" />
-                      Add / Edit Items
-                    </button>
-                  )}
+                  <div className="space-y-2.5 pt-2">
+                    {res.status !== ReservationStatus.CANCELLED && res.status !== ReservationStatus.COMPLETED && (
+                      <Button
+                        variant="outline"
+                        onClick={() => setEditingSession(res.sessionId)}
+                        className="w-full h-11 rounded-xl border-primary/20 bg-primary/5 text-primary text-[10px] font-black uppercase tracking-[0.2em] hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-300 gap-2 shadow-sm"
+                      >
+                        <Utensils className="h-3.5 w-3.5" />
+                        Add / Edit Items
+                      </Button>
+                    )}
+
+                    {res.status === ReservationStatus.COMPLETED && (
+                      <Button
+                        asChild
+                        variant="outline"
+                        className="w-full h-11 rounded-xl border-emerald-200 bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition-all duration-300 gap-2 shadow-sm"
+                      >
+                        <Link to={`/invoices/history?sessionId=${res.sessionId}`}>
+                          <Receipt className="h-3.5 w-3.5" />
+                          View Detailed Invoice
+                        </Link>
+                      </Button>
+                    )}
+                  </div>
                 </div>
 
-                <div className="mt-auto p-5 bg-muted/20 border-t border-border flex items-center justify-between">
+                <div className="mt-auto p-5 bg-muted/10 border-t border-border/60 flex items-center justify-between group-hover:bg-muted/20 transition-colors">
                   <div className="flex items-center gap-2">
-                    <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="text-[10px] font-black text-foreground tracking-wider uppercase">
+                    <div className="h-7 w-7 rounded-full bg-background border border-border flex items-center justify-center shadow-sm">
+                      <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                    </div>
+                    <span className="text-[11px] font-black text-foreground tracking-wider">
                       {new Date(res.reservationTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
                     {res.status !== ReservationStatus.CANCELLED && res.status !== ReservationStatus.COMPLETED && (
                       <button
-                        onClick={() => handleCancelReservation(res.sessionId)}
-                        disabled={cancelMutation.isPending}
-                        className="text-[10px] font-black uppercase tracking-widest text-destructive hover:text-destructive/80 transition-colors px-3 py-1.5 rounded-lg hover:bg-destructive/5 disabled:opacity-50"
+                        onClick={() => setCancellingSessionId(res.sessionId)}
+                        className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:text-destructive hover:bg-destructive/5 px-3 py-1.5 rounded-lg transition-all"
                       >
-                        Cancel Order
+                        Cancel
                       </button>
                     )}
-                    <div className="h-8 w-8 rounded-full border border-border bg-background flex items-center justify-center text-[10px] font-black text-foreground shadow-sm">
+                    <div className="h-8 w-8 rounded-xl border border-border bg-background flex items-center justify-center text-[11px] font-black text-foreground shadow-sm group-hover:border-primary/20 transition-colors">
                       {res.items.reduce((acc, i) => acc + i.quantity, 0)}
                     </div>
                   </div>
@@ -203,6 +226,41 @@ export default function ReservationsPage() {
           description={`There are no ${activeTab.toLowerCase()} orders at the moment. Try matching your filters.`}
         />
       )}
+
+      {/* Confirm Cancellation Dialog */}
+      <Dialog open={!!cancellingSessionId} onOpenChange={(open) => !open && setCancellingSessionId(null)}>
+        <DialogContent className="max-w-[400px] p-0 overflow-hidden bg-background border-border shadow-2xl rounded-[2rem]">
+          <div className="p-8 text-center space-y-6">
+             <div className="mx-auto h-16 w-16 rounded-full bg-destructive/10 border border-destructive/20 flex items-center justify-center">
+                <AlertTriangle className="h-8 w-8 text-destructive animate-pulse" />
+             </div>
+             <div className="space-y-2">
+                <DialogTitle className="text-2xl font-black tracking-tight text-foreground">Cancel Order?</DialogTitle>
+                <p className="text-sm text-muted-foreground font-medium px-4">
+                  Are you sure you want to cancel this reservation? This action will void the current items and free up the table.
+                </p>
+             </div>
+             <div className="grid grid-cols-2 gap-3 pt-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setCancellingSessionId(null)}
+                  className="h-12 rounded-xl font-bold uppercase tracking-widest text-[10px]"
+                  disabled={cancelMutation.isPending}
+                >
+                  Keep Order
+                </Button>
+                <Button 
+                  variant="destructive" 
+                  onClick={handleConfirmCancel}
+                  className="h-12 rounded-xl font-bold uppercase tracking-widest text-[10px] gap-2"
+                  disabled={cancelMutation.isPending}
+                >
+                  {cancelMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Yes, Cancel"}
+                </Button>
+             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Order Dialog */}
       <Dialog open={!!editingSession} onOpenChange={(open) => !open && setEditingSession(null)}>

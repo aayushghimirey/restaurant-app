@@ -1,12 +1,17 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from "@/components/ui/EmptyState";
 import { SkeletonCard } from "@/components/ui/SkeletonCard";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { useTables } from '@/features/orders/api';
 import { cn } from "@/lib/utils";
-import { Clock, Receipt, Wifi, WifiOff } from "lucide-react";
+import { Clock, Receipt, Wifi, WifiOff, Printer, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useCompleteInvoice, useInvoiceWebSocket, usePendingInvoices } from '../api';
+import { toast } from "react-hot-toast";
+import { useCompleteInvoice, useInvoiceWebSocket, usePendingInvoices, getPrintInvoiceHtml } from '../api';
+import { SettleInvoiceSheet } from './SettleInvoiceSheet';
+import { CreateInvoiceCommand, Invoice } from '../types';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/Dialog';
 
 export default function InvoicesPage() {
   const { data: pending, isLoading: loadingPending } = usePendingInvoices();
@@ -14,12 +19,53 @@ export default function InvoicesPage() {
   const { status: wsStatus } = useInvoiceWebSocket();
   const mutation = useCompleteInvoice();
 
-  const handleComplete = (id: string) => {
-    mutation.mutate(id);
+  const [settleInvoice, setSettleInvoice] = useState<Invoice | null>(null);
+  const [printPromptInvoice, setPrintPromptInvoice] = useState<Invoice | null>(null);
+  const [isPrinting, setIsPrinting] = useState(false);
+
+  const handleSettle = (command: CreateInvoiceCommand) => {
+    if (!settleInvoice) return;
+    mutation.mutate({
+      invoiceId: settleInvoice.id,
+      command
+    }, {
+      onSuccess: () => {
+        setPrintPromptInvoice(settleInvoice);
+        setSettleInvoice(null);
+      }
+    });
+  };
+
+  const handlePrintConfirm = async () => {
+    if (!printPromptInvoice) return;
+    setIsPrinting(true);
+    try {
+      const htmlContent = await getPrintInvoiceHtml(printPromptInvoice.id);
+      
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+        printWindow.focus();
+        
+        setTimeout(() => {
+          printWindow.print();
+          printWindow.close();
+        }, 500);
+      } else {
+        toast.error("Please allow popups to print invoices");
+      }
+      setPrintPromptInvoice(null);
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to load printable invoice.");
+    } finally {
+      setIsPrinting(false);
+    }
   };
 
   return (
     <div className="p-6 md:p-8 space-y-10 animate-in max-w-[1400px] mx-auto">
+      {/* ... existing header code ... */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border pb-6">
         <div className="space-y-2">
           <div className="flex items-center gap-3">
@@ -86,10 +132,10 @@ export default function InvoicesPage() {
 
                     <Button
                       className="w-full h-12 shadow-md shadow-primary/20 rounded-xl font-bold uppercase tracking-widest text-xs transition-all hover:-translate-y-0.5"
-                      onClick={() => handleComplete(inv.id)}
-                      disabled={mutation.isPending}
+                      onClick={() => setSettleInvoice(inv)}
+                      disabled={mutation.isPending && settleInvoice?.id === inv.id}
                     >
-                      {mutation.isPending ? 'Processing...' : 'Settle Invoice'}
+                      {mutation.isPending && settleInvoice?.id === inv.id ? 'Processing...' : 'Settle Invoice'}
                     </Button>
                   </div>
                 </div>
@@ -105,6 +151,37 @@ export default function InvoicesPage() {
         )}
       </section>
 
+      {/* Settlement Dialog */}
+      <SettleInvoiceSheet
+        invoice={settleInvoice}
+        isOpen={!!settleInvoice}
+        onClose={() => setSettleInvoice(null)}
+        onSettle={handleSettle}
+        isPending={mutation.isPending}
+      />
+
+      {/* Print Confirmation Dialog */}
+      <Dialog open={!!printPromptInvoice} onOpenChange={(open) => !open && setPrintPromptInvoice(null)}>
+        <DialogContent className="max-w-sm text-center">
+           <DialogHeader className="flex flex-col items-center">
+              <div className="mx-auto h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-2 shadow-sm">
+                 <Printer className="h-6 w-6 text-primary" />
+              </div>
+              <DialogTitle className="text-xl">Print Invoice?</DialogTitle>
+              <DialogDescription>
+                 Settlement was successful. Would you like to print the receipt for <strong>{printPromptInvoice?.billNumber || 'this transaction'}</strong>?
+              </DialogDescription>
+           </DialogHeader>
+           <DialogFooter className="flex gap-3 justify-center sm:justify-center mt-4">
+              <DialogClose asChild>
+                 <Button variant="outline" disabled={isPrinting} className="flex-1 rounded-xl h-12 font-bold uppercase tracking-widest text-[10px]">No, Skip</Button>
+              </DialogClose>
+              <Button onClick={handlePrintConfirm} disabled={isPrinting} className="flex-1 rounded-xl h-12 shadow-lg shadow-primary/20 font-black uppercase tracking-[0.2em] text-[10px]">
+                 {isPrinting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Fetching...</> : 'Yes, Print'}
+              </Button>
+           </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -22,3 +22,11 @@ export interface ApiResponse<T> {
   message: string
   success: boolean
 }
+
+export interface Tenant {
+  id: string
+  name: string
+  email: string
+  createdAt: string
+  updatedAt: string
+}

@@ -188,8 +188,8 @@ export default function CreatePurchaseForm({ onSuccess, onCancel }: Props) {
                 className="h-12 w-full appearance-none rounded-xl border border-border bg-card px-4 text-xs font-black tracking-widest text-foreground focus:ring-2 focus:ring-primary/20 outline-none transition-all pr-10 shadow-sm"
               >
                 <option value="CASH">LIQUID CASH</option>
-                <option value="CREDIT">CREDIT LINE</option>
                 <option value="BANK">BANK TRANSFER</option>
+                <option value="FONE_PAY">FONE PAY / QR</option>
               </select>
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
             </div>

@@ -16,6 +16,7 @@ import AdministrationPage from './features/administration/components/Administrat
 import FinancesPage from './features/finances/components/FinancesPage'
 import TenantRegistrationPage from './features/tenants/components/TenantRegistrationPage'
 import BusinessDetailPage from './features/business-details/components/BusinessDetailPage'
+import DashboardPage from './features/dashboard/components/DashboardPage'
 import { BusinessDetailGuard } from './components/auth/BusinessDetailGuard'
 import { useAuthStore } from './features/auth/store/authStore'
 import { WebSocketProvider } from './providers/WebSocketProvider'
@@ -36,12 +37,13 @@ function App() {
               <Route index element={
                 role === "SUPER_ADMIN" 
                   ? <Navigate to="/tenants" replace /> 
-                  : <Navigate to="/vendors" replace />
+                  : <Navigate to="/dashboard" replace />
               } />
 
               {/* Regular Tenant Admin/User Routes */}
               <Route element={<ProtectedRoute excludeRole="SUPER_ADMIN" />}>
                 <Route element={<BusinessDetailGuard />}>
+                  <Route path="dashboard" element={<DashboardPage />} />
                   <Route path="vendors" element={<VendorsPage />} />
                   <Route path="inventory" element={<InventoryPage />} />
                   <Route path="inventory/transactions/:variantId?" element={<InventoryTransactionsPage />} />

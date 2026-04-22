@@ -1,5 +1,5 @@
 export type BillingType = 'VAT' | 'PAN' | 'NO_BILL';
-export type MoneyTransaction = 'CASH' | 'CREDIT' | 'BANK';
+export type MoneyTransaction = 'CASH' | 'BANK' | 'FONE_PAY';
 
 export interface PurchaseItemCommand {
   variantId: string;
@@ -18,6 +18,13 @@ export interface CreatePurchaseCommand {
   items: PurchaseItemCommand[];
 }
 
+export interface GetPurchaseQueryRequest {
+  vendorId?: string;
+  invoiceNumber?: string;
+  billingType?: BillingType;
+  moneyTransaction?: MoneyTransaction;
+}
+
 export interface PurchaseItemResponse {
   variantId: string;
   unitId: string;
@@ -31,13 +38,14 @@ export interface PurchaseItemResponse {
 export interface PurchaseResponse {
   id: string;
   invoiceNumber: string;
-  vendorId?: string; // Optional if not returned by backend
   billingType: BillingType;
   moneyTransaction: MoneyTransaction;
   discountAmount: number;
   subTotal: number;
   vatAmount: number;
   grossTotal: number;
+  vendorName: string;
+  vendorId: string;
   items: PurchaseItemResponse[];
   createdAt?: string;
   updatedAt?: string;

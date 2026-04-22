@@ -31,6 +31,7 @@ type NavNode = {
 }
 
 const navTree: NavNode[] = [
+  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Vendors", href: "/vendors", icon: Users },
   {
     label: "Inventory",
@@ -144,7 +145,7 @@ export function Sidebar({
               <LayoutDashboard className="h-4 w-4 text-white" />
             </div>
             <div className="text-xs uppercase tracking-[0.2em] font-black text-white">
-              ResManager
+              STS_HOSPITALITY
             </div>
           </div>
         </div>
@@ -181,7 +182,7 @@ export function Sidebar({
                 <LayoutDashboard className="h-4 w-4 text-white" />
               </div>
               <div className="text-xs uppercase tracking-[0.2em] font-black text-white">
-                ResManager
+                STS_HOSPITALITY
               </div>
             </div>
           </div>
