@@ -3,15 +3,17 @@ export type StaffRole = "ADMIN" | "MANAGER" | "STAFF" | string
 export interface StaffResDto {
   id: string
   name: string
-  email: string
-  phone: string
+  address: string
+  contactNumber: string
+  permissions: string[]
   role: StaffRole
 }
 
 export interface StaffReqDto {
   name: string
-  email: string
-  phone: string
+  address: string
+  contactNumber: string
+  permissions: string[]
   role: StaffRole
 }
 

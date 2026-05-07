@@ -80,10 +80,17 @@ export function SettleInvoiceSheet({
   const discountValue = parseFloat(discount) || 0;
   const hiddenCount = hiddenItemIds.size;
 
+  const vatAmount = useMemo(() => {
+    if (!invoice) return 0;
+    const baseTotal = Math.max(0, invoice.grossTotal - discountValue);
+    return invoiceType === 'VAT' ? baseTotal * 0.13 : 0;
+  }, [invoice, discountValue, invoiceType]);
+
   const finalTotal = useMemo(() => {
     if (!invoice) return 0;
-    return Math.max(0, invoice.grossTotal - discountValue);
-  }, [invoice, discountValue]);
+    const baseTotal = Math.max(0, invoice.grossTotal - discountValue);
+    return baseTotal + vatAmount;
+  }, [invoice, discountValue, vatAmount]);
 
   if (!invoice) return null;
 
@@ -378,6 +385,12 @@ export function SettleInvoiceSheet({
                 <div className="flex justify-between items-center text-xs font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
                   <span>Discount</span>
                   <span>− Rs {discountValue.toLocaleString()}</span>
+                </div>
+              )}
+              {invoiceType === 'VAT' && (
+                <div className="flex justify-between items-center text-xs font-bold uppercase tracking-widest text-primary">
+                  <span>VAT (13%)</span>
+                  <span>+ Rs {vatAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                 </div>
               )}
               {hiddenCount > 0 && (

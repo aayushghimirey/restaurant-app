@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Plus, Receipt, ChevronLeft, ChevronRight, Calendar, User, 
-  Search, ArrowUpRight, X, Filter, CreditCard, Banknote, Building2, Landmark, Smartphone
+  Plus, Receipt, ChevronLeft, ChevronRight, Calendar,
+  Search, ArrowUpRight, X, Filter, Banknote, Building2, Landmark, Smartphone
 } from 'lucide-react';
 import { usePurchases } from '../api';
 import { useVendors } from '@/features/vendors/api';
@@ -10,6 +10,7 @@ import { PurchaseResponse, BillingType, MoneyTransaction } from '../types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { VendorSelector } from './VendorSelector';
+import { PurchaseDetailSheet } from './PurchaseDetailSheet';
 import { cn } from "@/lib/utils";
 
 export default function PurchasesPage() {
@@ -19,6 +20,7 @@ export default function PurchasesPage() {
   const [vendorId, setVendorId] = useState("all");
   const [billingType, setBillingType] = useState<BillingType | "all">("all");
   const [moneyTransaction, setMoneyTransaction] = useState<MoneyTransaction | "all">("all");
+  const [selectedPurchase, setSelectedPurchase] = useState<PurchaseResponse | null>(null);
 
   const queryParams = useMemo(() => ({
     page,
@@ -222,6 +224,7 @@ export default function PurchasesPage() {
                       <Button 
                         variant="outline" 
                         size="sm" 
+                        onClick={() => setSelectedPurchase(purchase)}
                         className="h-9 w-9 p-0 rounded-xl border-border hover:border-primary hover:text-primary transition-all mx-auto shadow-sm"
                       >
                         <ArrowUpRight className="h-4 w-4" />
@@ -272,6 +275,12 @@ export default function PurchasesPage() {
           )}
         </div>
       )}
+
+      <PurchaseDetailSheet 
+        purchase={selectedPurchase}
+        isOpen={!!selectedPurchase}
+        onClose={() => setSelectedPurchase(null)}
+      />
     </div>
   );
 }
