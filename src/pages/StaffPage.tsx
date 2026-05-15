@@ -142,10 +142,10 @@ export default function StaffPage() {
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>Staff Member</th>
-                    <th>Contact Info</th>
-                    <th>Role</th>
-                    {isTenant && <th>Actions</th>}
+                    <th className="px-6 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Staff Member</th>
+                    <th className="px-6 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Contact Info</th>
+                    <th className="px-6 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Role</th>
+                    {isTenant && <th className="px-6 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Actions</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -163,20 +163,20 @@ export default function StaffPage() {
                             {getInitials(s.firstName, s.lastName)}
                           </div>
                           <div>
-                            <p className="font-semibold text-white text-sm">{s.firstName} {s.lastName}</p>
-                            <p className="text-[10px] text-slate-500 uppercase tracking-wider">ID: {s.id.split('-')[0]}</p>
+                            <p className="font-bold text-white text-xs">{s.firstName} {s.lastName}</p>
+                            <p className="text-[9px] text-slate-500 uppercase tracking-wider font-medium">ID: {s.id.split('-')[0]}</p>
                           </div>
                         </div>
                       </td>
                       <td>
                         <div className="flex flex-col gap-1">
-                          <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                            <Mail size={12} className="text-slate-600" />
+                          <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+                            <Mail size={10} className="text-slate-600" />
                             {s.email}
                           </div>
                           {s.phoneNumber && (
-                            <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                              <Phone size={12} className="text-slate-600" />
+                            <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+                              <Phone size={10} className="text-slate-600" />
                               {s.phoneNumber}
                             </div>
                           )}
@@ -184,7 +184,7 @@ export default function StaffPage() {
                       </td>
                       <td>
                         {s.roleName ? (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-brand-500/10 text-brand-400 border border-brand-500/20">
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-brand-500/10 text-brand-400 border border-brand-500/20 uppercase tracking-wide">
                             {s.roleName}
                           </span>
                         ) : (

@@ -245,12 +245,12 @@ export default function MenuPage() {
                 <button
                   key={c.id}
                   onClick={() => { setCategoryFilter(c.id); setPage(0); }}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${categoryFilter === c.id
+                  className={`w-full flex items-center gap-2 px-2.5 py-2.5 rounded-xl text-[11px] font-bold transition-all ${categoryFilter === c.id
                       ? 'bg-brand-500/10 text-brand-400 border border-brand-500/20'
                       : 'text-slate-500 hover:text-white hover:bg-white/5 border border-transparent'
                     }`}
                 >
-                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${categoryFilter === c.id ? 'bg-brand-400' : 'bg-slate-700'}`} />
+                  <span className={`w-1 h-1 rounded-full shrink-0 ${categoryFilter === c.id ? 'bg-brand-400' : 'bg-slate-700'}`} />
                   <span className="truncate">{c.name}</span>
                   <ChevronRight size={10} className={`ml-auto shrink-0 ${categoryFilter === c.id ? 'text-brand-500' : 'text-slate-700'}`} />
                 </button>
@@ -348,10 +348,10 @@ export default function MenuPage() {
                     {/* info */}
                     <div className="p-3 flex flex-col gap-2 flex-1">
                       <div className="min-w-0">
-                        <h3 className="font-bold text-white text-sm truncate leading-snug group-hover:text-brand-300 transition-colors">
+                        <h3 className="font-bold text-white text-xs truncate leading-snug group-hover:text-brand-300 transition-colors">
                           {item.name}
                         </h3>
-                        <p className="text-brand-400 font-black text-sm mt-0.5">
+                        <p className="text-brand-400 font-black text-xs mt-0.5">
                           Rs.{item.price.toLocaleString()}
                         </p>
                       </div>
@@ -415,18 +415,18 @@ export default function MenuPage() {
 
                     {/* name + meta */}
                     <div className="flex-1 min-w-0">
-                      <p className="font-bold text-white text-sm truncate group-hover:text-brand-300 transition-colors">
+                      <p className="font-bold text-white text-xs truncate group-hover:text-brand-300 transition-colors">
                         {item.name}
                       </p>
                       {item.categoryName && (
-                        <p className="text-[10px] text-slate-500 font-semibold mt-0.5 uppercase tracking-wider truncate">
+                        <p className="text-[9px] text-slate-500 font-bold mt-0.5 uppercase tracking-wider truncate">
                           {item.categoryName}
                         </p>
                       )}
                     </div>
 
                     {/* price */}
-                    <p className="text-brand-400 font-black text-sm shrink-0">
+                    <p className="text-brand-400 font-black text-xs shrink-0">
                       Rs.{item.price.toLocaleString()}
                     </p>
 

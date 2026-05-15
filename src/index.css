@@ -179,12 +179,12 @@ body {
 .data-table { width: 100%; border-collapse: separate; border-spacing: 0; }
 .data-table thead tr { background: rgba(255,255,255,0.02); }
 .data-table th {
-  text-align: left; font-size: 0.75rem; font-weight: 700;
+  text-align: left; font-size: 0.7rem; font-weight: 700;
   color: #64748b; text-transform: uppercase; letter-spacing: 0.1em;
-  padding: 1rem 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.08);
+  padding: 0.75rem 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 .data-table td {
-  padding: 1.125rem 1.25rem; font-size: 0.9375rem; color: #e2e8f0;
+  padding: 0.75rem 1.25rem; font-size: 0.8125rem; color: #e2e8f0;
   border-bottom: 1px solid rgba(255,255,255,0.04);
 }
 .data-table tbody tr { transition: all 0.2s; }

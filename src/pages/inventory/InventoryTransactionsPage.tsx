@@ -75,12 +75,12 @@ export default function InventoryTransactionsPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-white/5 bg-white/[0.02]">
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Date & Time</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Item</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Type</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">Change</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Balance After</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Remark</th>
+                <th className="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Date & Time</th>
+                <th className="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Item</th>
+                <th className="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Type</th>
+                <th className="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center">Change</th>
+                <th className="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Balance After</th>
+                <th className="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Remark</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
@@ -103,40 +103,40 @@ export default function InventoryTransactionsPage() {
                   animate={{ opacity: 1 }}
                   className="hover:bg-white/[0.02] transition-colors"
                 >
-                  <td className="px-6 py-4">
-                    <div className="text-sm text-white font-medium">
+                  <td className="px-6 py-2.5">
+                    <div className="text-xs text-white font-medium">
                       {format(new Date(tx.createdAt), 'MMM dd, yyyy')}
                     </div>
-                    <div className="text-[10px] text-slate-500">
+                    <div className="text-[9px] text-slate-500">
                       {format(new Date(tx.createdAt), 'HH:mm:ss')}
                     </div>
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm font-semibold text-white">{tx.stockItemName}</div>
-                    <div className="text-[10px] text-slate-500 uppercase tracking-tighter">
+                  <td className="px-6 py-2.5">
+                    <div className="text-xs font-semibold text-white">{tx.stockItemName}</div>
+                    <div className="text-[9px] text-slate-500 uppercase tracking-tighter">
                       REF: {tx.referenceType}
                     </div>
                   </td>
-                  <td className="px-6 py-4">
-                    <span className="px-2 py-1 rounded-md bg-white/5 text-[10px] font-bold text-slate-400 uppercase tracking-tight border border-white/5">
+                  <td className="px-6 py-2.5">
+                    <span className="px-2 py-0.5 rounded-md bg-white/5 text-[9px] font-bold text-slate-400 uppercase tracking-tight border border-white/5">
                       {tx.transactionType.replace(/_/g, ' ')}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-center">
+                  <td className="px-6 py-2.5 text-center">
                     <div className={`flex items-center justify-center gap-1 font-bold ${tx.direction > 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                      {tx.direction > 0 ? <ArrowUpRight size={14} /> : <ArrowDownLeft size={14} />}
-                      {tx.originalQuantity}
-                      <span className="text-[10px] font-normal opacity-70 ml-1">{tx.originalUnitName}</span>
+                      {tx.direction > 0 ? <ArrowUpRight size={12} /> : <ArrowDownLeft size={12} />}
+                      <span className="text-xs">{tx.originalQuantity}</span>
+                      <span className="text-[9px] font-normal opacity-70 ml-1">{tx.originalUnitName}</span>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm font-bold text-white flex items-center gap-1">
+                  <td className="px-6 py-2.5">
+                    <div className="text-xs font-bold text-white flex items-center gap-1">
                        {tx.balanceAfter}
-                       <span className="text-[10px] font-normal text-slate-500">Units</span>
+                       <span className="text-[9px] font-normal text-slate-500">Units</span>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="text-xs text-slate-400 max-w-[200px] truncate" title={tx.remark}>
+                  <td className="px-6 py-2.5">
+                    <div className="text-[11px] text-slate-400 max-w-[200px] truncate" title={tx.remark}>
                       {tx.remark || '-'}
                     </div>
                   </td>

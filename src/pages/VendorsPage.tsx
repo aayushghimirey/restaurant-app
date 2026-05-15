@@ -83,10 +83,10 @@ export default function VendorsPage() {
                   <table className="w-full text-left border-collapse whitespace-nowrap">
                     <thead>
                       <tr className="bg-slate-800/80 border-b border-white/10">
-                        <th className="px-6 py-4 text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Vendor Details</th>
-                        <th className="px-6 py-4 text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Contact</th>
-                        <th className="px-6 py-4 text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Address</th>
-                        <th className="px-6 py-4 text-[11px] uppercase tracking-wider text-slate-400 font-semibold">PAN Number</th>
+                        <th className="px-6 py-3 text-[10px] uppercase tracking-wider text-slate-400 font-bold">Vendor Details</th>
+                        <th className="px-6 py-3 text-[10px] uppercase tracking-wider text-slate-400 font-bold">Contact</th>
+                        <th className="px-6 py-3 text-[10px] uppercase tracking-wider text-slate-400 font-bold">Address</th>
+                        <th className="px-6 py-3 text-[10px] uppercase tracking-wider text-slate-400 font-bold">PAN Number</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
@@ -98,29 +98,29 @@ export default function VendorsPage() {
                           transition={{ delay: idx * 0.05 }}
                           className="hover:bg-white/[0.02] transition-colors group"
                         >
-                          <td className="px-6 py-4">
+                          <td className="px-6 py-2.5">
                             <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-full bg-brand-500/10 flex items-center justify-center border border-brand-500/20 group-hover:border-brand-500/40 transition-colors shadow-lg">
-                                <Truck size={18} className="text-brand-400" />
+                              <div className="w-8 h-8 rounded-full bg-brand-500/10 flex items-center justify-center border border-brand-500/20 group-hover:border-brand-500/40 transition-colors shadow-lg">
+                                <Truck size={14} className="text-brand-400" />
                               </div>
-                              <span className="font-medium text-slate-200 group-hover:text-white transition-colors">{vendor.name}</span>
+                              <span className="text-xs font-medium text-slate-200 group-hover:text-white transition-colors">{vendor.name}</span>
                             </div>
                           </td>
-                          <td className="px-6 py-4">
+                          <td className="px-6 py-2.5">
                             <div className="flex items-center gap-2 text-slate-300">
-                              <Phone size={14} className="text-slate-500" />
-                              <span className="text-sm">{vendor.contactNumber}</span>
+                              <Phone size={12} className="text-slate-500" />
+                              <span className="text-[11px]">{vendor.contactNumber}</span>
                             </div>
                           </td>
-                          <td className="px-6 py-4">
+                          <td className="px-6 py-2.5">
                             <div className="flex items-center gap-2 text-slate-300">
-                              <MapPin size={14} className="text-slate-500" />
-                              <span className="text-sm truncate max-w-[200px]" title={vendor.address}>{vendor.address}</span>
+                              <MapPin size={12} className="text-slate-500" />
+                              <span className="text-[11px] truncate max-w-[200px]" title={vendor.address}>{vendor.address}</span>
                             </div>
                           </td>
-                          <td className="px-6 py-4">
-                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-brand-500/10 border border-brand-500/20 text-brand-300 font-mono text-sm shadow-inner">
-                              <Hash size={12} className="opacity-70" />
+                          <td className="px-6 py-2.5">
+                            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-brand-500/10 border border-brand-500/20 text-brand-300 font-mono text-[11px] shadow-inner">
+                              <Hash size={10} className="opacity-70" />
                               {vendor.panNumber}
                             </div>
                           </td>

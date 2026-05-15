@@ -151,11 +151,11 @@ export default function InventoryPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-white/5 bg-white/[0.02]">
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Item Name</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Category</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Current Stock</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-right">Actions</th>
+                <th className="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Item Name</th>
+                <th className="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Category</th>
+                <th className="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Current Stock</th>
+                <th className="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
@@ -178,38 +178,38 @@ export default function InventoryPage() {
                   animate={{ opacity: 1 }}
                   className="hover:bg-white/[0.02] transition-colors group"
                 >
-                  <td className="px-6 py-4">
-                    <div className="font-semibold text-white">{item.name}</div>
-                    <div className="text-[10px] text-slate-500">Base Unit: {item.baseUnit.name} ({item.baseUnit.symbol})</div>
+                  <td className="px-6 py-2.5">
+                    <div className="text-xs font-semibold text-white">{item.name}</div>
+                    <div className="text-[9px] text-slate-500">Base Unit: {item.baseUnit.name} ({item.baseUnit.symbol})</div>
                   </td>
-                  <td className="px-6 py-4">
-                    <span className="px-2 py-1 rounded-md bg-white/5 text-[10px] font-bold text-slate-400 uppercase tracking-tight border border-white/5">
+                  <td className="px-6 py-2.5">
+                    <span className="px-2 py-0.5 rounded-md bg-white/5 text-[9px] font-bold text-slate-400 uppercase tracking-tight border border-white/5">
                       {item.category.replace(/_/g, ' ')}
                     </span>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-2.5">
                     <div className="flex items-center gap-2">
-                      <span className={`text-lg font-bold ${item.lowStock ? 'text-amber-500' : 'text-emerald-400'}`}>
+                      <span className={`text-base font-bold ${item.lowStock ? 'text-amber-500' : 'text-emerald-400'}`}>
                         {item.currentStock}
                       </span>
-                      <span className="text-xs text-slate-500">{item.baseUnit.symbol}</span>
+                      <span className="text-[10px] text-slate-500">{item.baseUnit.symbol}</span>
                     </div>
-                    <div className="text-[10px] text-slate-600">Min: {item.minimumStock} {item.baseUnit.symbol}</div>
+                    <div className="text-[9px] text-slate-600">Min: {item.minimumStock} {item.baseUnit.symbol}</div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-2.5">
                     {item.lowStock ? (
-                      <span className="flex items-center gap-1.5 text-amber-500 text-xs font-bold">
-                        <AlertTriangle size={14} />
+                      <span className="flex items-center gap-1.5 text-amber-500 text-[10px] font-bold">
+                        <AlertTriangle size={12} />
                         Low Stock
                       </span>
                     ) : (
-                      <span className="flex items-center gap-1.5 text-emerald-500 text-xs font-bold">
-                        <Package size={14} />
+                      <span className="flex items-center gap-1.5 text-emerald-500 text-[10px] font-bold">
+                        <Package size={12} />
                         In Stock
                       </span>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-6 py-2.5 text-right">
                     <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                           className="p-2 hover:bg-brand-500/10 text-brand-400 rounded-lg transition-colors"
