@@ -12,12 +12,15 @@ import StaffPage from './pages/StaffPage';
 import InventoryPage from './pages/inventory/InventoryPage';
 import InventoryTransactionsPage from './pages/inventory/InventoryTransactionsPage';
 import InventorySettingsPage from './pages/inventory/InventorySettingsPage';
+import InventoryCategoriesPage from './pages/inventory/InventoryCategoriesPage';
 import MenuPage from './pages/MenuPage';
 import TablesPage from './pages/TablesPage';
 import OrdersPage from './pages/OrdersPage';
+import InvoicesPage from './pages/InvoicesPage';
 import CreateOrderPage from './pages/CreateOrderPage';
 import TakeOrderPage from './pages/TakeOrderPage';
 import VendorsPage from './pages/VendorsPage';
+import AccountSettingsPage from './pages/AccountSettingsPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -47,12 +50,15 @@ export default function App() {
               <Route path="inventory" element={<InventoryPage />} />
               <Route path="inventory/transactions" element={<InventoryTransactionsPage />} />
               <Route path="inventory/settings" element={<InventorySettingsPage />} />
+              <Route path="inventory/categories" element={<InventoryCategoriesPage />} />
               <Route path="menu" element={<MenuPage />} />
               <Route path="tables" element={<TablesPage />} />
               <Route path="orders" element={<OrdersPage />} />
+              <Route path="invoices" element={<InvoicesPage />} />
               <Route path="orders/new" element={<CreateOrderPage />} />
               <Route path="take-order" element={<TakeOrderPage />} />
               <Route path="vendors" element={<VendorsPage />} />
+              <Route path="account-settings" element={<AccountSettingsPage />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/dashboard" replace />} />

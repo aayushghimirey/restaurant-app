@@ -9,12 +9,18 @@ import Modal from '../components/ui/Modal';
 import Pagination from '../components/ui/Pagination';
 import { Spinner, EmptyState, ErrorBanner } from '../components/ui/Feedback';
 import { toast } from 'sonner';
+import { useSearchParams } from 'react-router-dom';
 
 const PAGE_SIZE = 10;
 
 export default function VendorsPage() {
-  const [page, setPage] = useState(0);
-  const [search, setSearch] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const search = searchParams.get('q') || '';
+  const page = parseInt(searchParams.get('page') || '0', 10);
+  const setPage = (p: number) => {
+    searchParams.set('page', p.toString());
+    setSearchParams(searchParams);
+  };
   const [open, setOpen] = useState(false);
   const qc = useQueryClient();
 
@@ -29,7 +35,6 @@ export default function VendorsPage() {
     mutationFn: (data: CreateVendorRequest) => vendorService.create(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['vendors'] });
-      setOpen(false);
       reset();
       toast.success('Vendor created successfully');
     },
@@ -40,7 +45,7 @@ export default function VendorsPage() {
   const paged = data?.data;
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
+    <div className="space-y-6">
       <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-0.5">
@@ -50,21 +55,9 @@ export default function VendorsPage() {
           <p className="text-sm text-slate-500 ml-8">Manage suppliers and distribution contacts.</p>
         </div>
         
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
-            <input
-              type="text"
-              placeholder="Search vendors..."
-              value={search}
-              onChange={e => { setSearch(e.target.value); setPage(0); }}
-              className="w-full bg-slate-800/50 border border-white/10 rounded-xl pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-brand-500/50 transition-all"
-            />
-          </div>
-          <button className="btn-primary flex items-center justify-center whitespace-nowrap" onClick={() => setOpen(true)}>
-            <Plus size={16} className="mr-2" /> Add Vendor
-          </button>
-        </div>
+        <button className="btn-primary flex items-center justify-center whitespace-nowrap" onClick={() => setOpen(true)}>
+          <Plus size={16} className="mr-2" /> Add Vendor
+        </button>
       </motion.div>
 
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>

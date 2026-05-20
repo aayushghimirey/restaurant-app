@@ -3,10 +3,10 @@ import { X, Save, Package, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { inventoryService } from '../../services/inventoryService';
 import { toast } from 'sonner';
-import { 
-  type UnitResponse, 
-  InventoryCategory, 
-  type CreateStockItemRequest 
+import type { 
+  UnitResponse, 
+  InventoryCategoryResponse,
+  CreateStockItemRequest 
 } from '../../types/inventory';
 
 interface Props {
@@ -18,46 +18,77 @@ interface Props {
 export default function CreateStockItemModal({ isOpen, onClose, onSuccess }: Props) {
   const [loading, setLoading] = useState(false);
   const [units, setUnits] = useState<UnitResponse[]>([]);
+  const [categories, setCategories] = useState<InventoryCategoryResponse[]>([]);
   const [fetchingUnits, setFetchingUnits] = useState(true);
+  const [fetchingCategories, setFetchingCategories] = useState(true);
+  
+  const [showAddCategory, setShowAddCategory] = useState(false);
+  const [newCatName, setNewCatName] = useState('');
 
   const [formData, setFormData] = useState<CreateStockItemRequest>({
     name: '',
-    category: InventoryCategory.OTHER,
+    categoryId: '',
     baseUnitId: '',
     minimumStock: 0,
   });
 
   useEffect(() => {
     if (isOpen) {
-      fetchUnits();
+      fetchInitialData();
     }
   }, [isOpen]);
 
-  const fetchUnits = async () => {
+  const fetchInitialData = async () => {
     setFetchingUnits(true);
+    setFetchingCategories(true);
     try {
-      // Fetch both system and custom units
-      const [sysRes, custRes] = await Promise.all([
+      const [sysRes, custRes, catRes] = await Promise.all([
         inventoryService.getSystemUnits(),
-        inventoryService.getCustomUnits()
+        inventoryService.getCustomUnits(),
+        inventoryService.getAllCategories()
       ]);
       
       const allUnits = [...(sysRes.data?.content || []), ...(custRes.data?.content || [])];
       setUnits(allUnits);
       
-      if (allUnits.length > 0 && !formData.baseUnitId) {
-        setFormData(prev => ({ ...prev, baseUnitId: allUnits[0].id }));
-      }
+      const allCats = catRes.data?.content || [];
+      setCategories(allCats);
+      
+      setFormData({
+        name: '',
+        baseUnitId: allUnits[0]?.id || '',
+        categoryId: allCats[0]?.id || '',
+        minimumStock: 0,
+      });
     } catch (err) {
-      console.error('Failed to fetch units', err);
+      console.error('Failed to fetch initial data', err);
+      toast.error('Failed to load categories or units');
     } finally {
       setFetchingUnits(false);
+      setFetchingCategories(false);
+    }
+  };
+
+  const handleCreateCategory = async () => {
+    if (!newCatName.trim()) return;
+    try {
+      const res = await inventoryService.createCategory({ name: newCatName });
+      if (res.success && res.data) {
+        setCategories(prev => [...prev, res.data]);
+        setFormData(prev => ({ ...prev, categoryId: res.data.id }));
+        setNewCatName('');
+        setShowAddCategory(false);
+        toast.success('Inventory category created successfully');
+      }
+    } catch (err) {
+      toast.error('Failed to create category');
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name) return toast.error('Name is required');
+    if (!formData.categoryId) return toast.error('Category is required');
     if (!formData.baseUnitId) return toast.error('Base unit is required');
 
     setLoading(true);
@@ -67,12 +98,6 @@ export default function CreateStockItemModal({ isOpen, onClose, onSuccess }: Pro
         toast.success('Stock item created successfully');
         onSuccess();
         onClose();
-        setFormData({
-          name: '',
-          category: InventoryCategory.OTHER,
-          baseUnitId: units[0]?.id || '',
-          minimumStock: 0,
-        });
       }
     } catch (err) {
       toast.error('Failed to create stock item');
@@ -126,15 +151,62 @@ export default function CreateStockItemModal({ isOpen, onClose, onSuccess }: Pro
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-400">Category</label>
+                  <div className="flex justify-between items-center">
+                    <label className="text-sm font-semibold text-slate-400">Category</label>
+                    <button
+                      type="button"
+                      onClick={() => setShowAddCategory(!showAddCategory)}
+                      className="text-xs text-brand-400 hover:text-brand-300 flex items-center gap-0.5 transition-colors"
+                    >
+                      {showAddCategory ? 'Cancel' : '+ New'}
+                    </button>
+                  </div>
+                  
+                  <AnimatePresence>
+                    {showAddCategory && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="flex gap-1.5 p-1.5 bg-slate-800/30 rounded-xl border border-slate-700/50 mb-2">
+                          <input
+                            className="bg-slate-800/50 border border-white/10 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:ring-2 focus:ring-brand-500/50 flex-1"
+                            placeholder="Category name"
+                            value={newCatName}
+                            onChange={(e) => setNewCatName(e.target.value)}
+                            onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleCreateCategory())}
+                            autoFocus
+                          />
+                          <button
+                            type="button"
+                            onClick={handleCreateCategory}
+                            disabled={!newCatName.trim()}
+                            className="bg-brand-500 hover:bg-brand-400 text-white rounded-lg text-xs px-2.5 py-1 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
+                          >
+                            Create
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
                   <select
                     className="w-full bg-slate-800/50 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-brand-500/50 cursor-pointer"
-                    value={formData.category}
-                    onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value as InventoryCategory }))}
+                    value={formData.categoryId}
+                    onChange={(e) => setFormData(prev => ({ ...prev, categoryId: e.target.value }))}
+                    disabled={fetchingCategories}
                   >
-                    {Object.values(InventoryCategory).map(cat => (
-                      <option key={cat} value={cat}>{cat.replace(/_/g, ' ')}</option>
-                    ))}
+                    {fetchingCategories ? (
+                      <option>Loading categories...</option>
+                    ) : categories.length === 0 ? (
+                      <option value="">No categories, create one!</option>
+                    ) : (
+                      categories.map(cat => (
+                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                      ))
+                    )}
                   </select>
                 </div>
 
@@ -191,7 +263,7 @@ export default function CreateStockItemModal({ isOpen, onClose, onSuccess }: Pro
                 </button>
                 <button
                   type="submit"
-                  disabled={loading || fetchingUnits}
+                  disabled={loading || fetchingUnits || fetchingCategories}
                   className="flex-[2] btn-primary py-3 flex items-center justify-center gap-2"
                 >
                   {loading ? 'Creating...' : (

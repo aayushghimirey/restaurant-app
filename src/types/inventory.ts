@@ -1,15 +1,17 @@
 import type { ApiResponse } from './index';
 
-export const InventoryCategory = {
-  MEAT_AND_POULTRY: 'MEAT_AND_POULTRY',
-  GRAINS: 'GRAINS',
-  DAIRY: 'DAIRY',
-  FRUITS_AND_VEGETABLES: 'FRUITS_AND_VEGETABLES',
-  OILS_AND_SPICES: 'OILS_AND_SPICES',
-  BEVERAGES: 'BEVERAGES',
-  OTHER: 'OTHER',
-} as const;
-export type InventoryCategory = typeof InventoryCategory[keyof typeof InventoryCategory];
+export interface InventoryCategoryResponse {
+  id: string;
+  name: string;
+  description?: string;
+  tenantId: string;
+  branchId: string;
+}
+
+export interface InventoryCategoryRequest {
+  name: string;
+  description?: string;
+}
 
 export const TransactionType = {
   PURCHASE_IN: 'PURCHASE_IN',
@@ -55,7 +57,8 @@ export interface StockItemResponse {
   id: string;
   name: string;
   baseUnit: UnitResponse;
-  category: InventoryCategory;
+  categoryId: string;
+  categoryName: string;
   currentStock: number;
   minimumStock: number;
   lowStock: boolean;
@@ -73,14 +76,14 @@ export interface InventorySummaryResponse {
 export interface CreateStockItemRequest {
   name: string;
   baseUnitId: string;
-  category: InventoryCategory;
+  categoryId: string;
   minimumStock: number;
 }
 
 export interface UpdateStockItemRequest {
   name: string;
   baseUnitId: string;
-  category: InventoryCategory;
+  categoryId: string;
   minimumStock: number;
 }
 

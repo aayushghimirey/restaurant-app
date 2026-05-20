@@ -1,27 +1,50 @@
-import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
-  Layout, Plus, Search, Filter,
-  Users, MapPin, CheckCircle2, XCircle,
-  ArrowUpRight, ArrowDownLeft, Loader2, Power, PowerOff
+  CheckCircle2,
+  Layout,
+  Loader2,
+  MapPin,
+  Plus,
+  Power, PowerOff,
+  Users,
+  XCircle
 } from 'lucide-react';
-import { tableService } from '../services/tableService';
-import type { TableResponse, TableStatus, TableSummaryResponse } from '../types';
+import { useEffect, useState } from 'react';
 import CreateTableModal from '../components/tables/CreateTableModal';
 import Pagination from '../components/ui/Pagination';
+import { tableService } from '../services/tableService';
+import type { TableResponse, TableStatus, TableSummaryResponse } from '../types';
 
 const PAGE_SIZE = 20;
 
+import { useSearchParams } from 'react-router-dom';
+
 export default function TablesPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const search = searchParams.get('q') || '';
+  const statusFilter = (searchParams.get('status') as TableStatus | 'ALL') || 'ALL';
+  
   const [tables, setTables] = useState<TableResponse[]>([]);
   const [summary, setSummary] = useState<TableSummaryResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<TableStatus | 'ALL'>('AVAILABLE');
-  const [page, setPage] = useState(0);
+  const page = parseInt(searchParams.get('page') || '0', 10);
+  const setPage = (p: number) => {
+    searchParams.set('page', p.toString());
+    setSearchParams(searchParams);
+  };
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  const setStatusFilter = (status: TableStatus | 'ALL') => {
+    if (status === 'ALL') {
+      searchParams.delete('status');
+    } else {
+      searchParams.set('status', status);
+    }
+    searchParams.delete('page');
+    setSearchParams(searchParams);
+  };
 
   useEffect(() => {
     fetchTables();
@@ -68,95 +91,88 @@ export default function TablesPage() {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="space-y-6">
+      {/* Header Row */}
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <Layout className="text-brand-400" />
-            Table Management
+          <h1 className="text-xl font-bold text-white flex items-center gap-2">
+            <Layout size={20} className="text-brand-400" />
+            Floor Map
           </h1>
-          <p className="text-slate-400 text-sm mt-1">Manage restaurant layout and table availability.</p>
+          <p className="text-xs text-slate-500 mt-1">Manage restaurant layout and table availability.</p>
         </div>
         <button
-          className="btn-primary flex items-center gap-2 self-start"
+          className="btn-primary"
           onClick={() => setIsCreateModalOpen(true)}
         >
-          <Plus size={18} />
-          Add New Table
+          <Plus size={16} />
+          Add Table
         </button>
       </div>
 
       {/* Stats Summary */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="glass-card p-4 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-brand-500/10 flex items-center justify-center text-brand-400">
-            <Layout size={24} />
+        <div 
+          onClick={() => setStatusFilter('ALL')}
+          className={`glass-card p-4 flex items-center gap-4 cursor-pointer hover:border-brand-500/50 hover:bg-brand-500/5 transition-all duration-200 ${
+            statusFilter === 'ALL' ? 'border-brand-500 shadow-lg shadow-brand-500/10 bg-brand-500/5' : 'border-white/5'
+          }`}
+        >
+          <div className="w-10 h-10 rounded-xl bg-brand-500/10 flex items-center justify-center text-brand-400">
+            <Layout size={20} />
           </div>
           <div>
-            <p className="text-xs text-slate-400 uppercase font-bold tracking-wider">Total Tables</p>
-            <p className="text-2xl font-bold text-white">{summary?.totalTables ?? totalElements}</p>
+            <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Total Tables</p>
+            <p className="text-xl font-bold text-white">{summary?.totalTables ?? totalElements}</p>
           </div>
         </div>
-        <div className="glass-card p-4 flex items-center gap-4 border-emerald-500/20">
-          <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
-            <CheckCircle2 size={24} />
+        <div 
+          onClick={() => setStatusFilter('AVAILABLE')}
+          className={`glass-card p-4 flex items-center gap-4 cursor-pointer hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all duration-200 ${
+            statusFilter === 'AVAILABLE' ? 'border-emerald-500 shadow-lg shadow-emerald-500/10 bg-emerald-500/5' : 'border-emerald-500/10'
+          }`}
+        >
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+            <CheckCircle2 size={20} />
           </div>
           <div>
-            <p className="text-xs text-slate-400 uppercase font-bold tracking-wider">Available</p>
-            <p className="text-2xl font-bold text-emerald-500">
+            <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Available</p>
+            <p className="text-xl font-bold text-emerald-500">
               {summary?.availableTables ?? 0}
             </p>
           </div>
         </div>
-        <div className="glass-card p-4 flex items-center gap-4 border-amber-500/20">
-          <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500">
-            <XCircle size={24} />
+        <div 
+          onClick={() => setStatusFilter('RESERVED')}
+          className={`glass-card p-4 flex items-center gap-4 cursor-pointer hover:border-amber-500/50 hover:bg-amber-500/5 transition-all duration-200 ${
+            statusFilter === 'RESERVED' ? 'border-amber-500 shadow-lg shadow-amber-500/10 bg-amber-500/5' : 'border-amber-500/10'
+          }`}
+        >
+          <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500">
+            <XCircle size={20} />
           </div>
           <div>
-            <p className="text-xs text-slate-400 uppercase font-bold tracking-wider">Reserved</p>
-            <p className="text-2xl font-bold text-amber-500">
+            <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Reserved</p>
+            <p className="text-xl font-bold text-amber-500">
               {summary?.reservedTables ?? 0}
             </p>
           </div>
         </div>
-        <div className="glass-card p-4 flex items-center gap-4 border-red-500/20">
-          <div className="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center text-red-500">
-            <XCircle size={24} />
+        <div 
+          onClick={() => setStatusFilter('DISABLED')}
+          className={`glass-card p-4 flex items-center gap-4 cursor-pointer hover:border-red-500/50 hover:bg-red-500/5 transition-all duration-200 ${
+            statusFilter === 'DISABLED' ? 'border-red-500 shadow-lg shadow-red-500/10 bg-red-500/5' : 'border-red-500/10'
+          }`}
+        >
+          <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center text-red-500">
+            <XCircle size={20} />
           </div>
           <div>
-            <p className="text-xs text-slate-400 uppercase font-bold tracking-wider">Disabled</p>
-            <p className="text-2xl font-bold text-red-500">
+            <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Disabled</p>
+            <p className="text-xl font-bold text-red-500">
               {summary?.disabledTables ?? 0}
             </p>
           </div>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between glass-card p-4">
-        <div className="relative w-full md:w-96">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-          <input
-            type="text"
-            placeholder="Search tables..."
-            className="w-full bg-slate-800/50 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-brand-500/50 transition-all"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-        <div className="flex items-center gap-2 w-full md:w-auto">
-          <Filter size={18} className="text-slate-500" />
-          <select
-            className="bg-slate-800/50 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-brand-500/50 transition-all cursor-pointer grow md:grow-0"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as any)}
-          >
-            <option value="ALL">All Statuses</option>
-            <option value="AVAILABLE">Available</option>
-            <option value="RESERVED">Reserved</option>
-            <option value="DISABLED">Disabled</option>
-          </select>
         </div>
       </div>
 

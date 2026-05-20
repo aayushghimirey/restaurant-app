@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { motion } from 'framer-motion';
-import { Users, Plus, Search, Mail, Phone, Shield, Trash2 } from 'lucide-react';
+import { Users, Plus, Search, Mail, Phone, Shield } from 'lucide-react';
 import { staffService } from '../services/staffService';
 import { roleService } from '../services/roleService';
 import type { CreateStaffRequest, StaffResponse, UpdateStaffRequest } from '../types';
@@ -16,10 +16,17 @@ import ConfirmModal from '../components/ui/ConfirmModal';
 
 const PAGE_SIZE = 10;
 
+import { useSearchParams } from 'react-router-dom';
+
 export default function StaffPage() {
   const { isTenant } = useAuth();
-  const [page, setPage] = useState(0);
-  const [search, setSearch] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const search = searchParams.get('q') || '';
+  const page = parseInt(searchParams.get('page') || '0', 10);
+  const setPage = (p: number) => {
+    searchParams.set('page', p.toString());
+    setSearchParams(searchParams);
+  };
   const [open, setOpen] = useState(false);
   const qc = useQueryClient();
 
@@ -86,14 +93,7 @@ export default function StaffPage() {
     onError: () => toast.error('Failed to update staff member'),
   });
 
-  const deleteStaff = useMutation({
-    mutationFn: staffService.delete,
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['staff'] });
-      toast.success('Staff member removed');
-    },
-    onError: () => toast.error('Failed to remove staff member'),
-  });
+
 
   const handleEdit = (s: StaffResponse) => {
     setEditingStaff(s);
@@ -109,14 +109,14 @@ export default function StaffPage() {
   const roles = rolesData?.data?.content ?? [];
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between mb-6">
+    <div className="space-y-6">
+      <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2 mb-0.5">
-            <Users size={18} style={{ color: 'var(--color-brand-400)' }} />
-            <h1 className="text-xl font-bold text-white">Staff Management</h1>
+            <Users size={20} style={{ color: 'var(--color-brand-400)' }} />
+            <h1 className="text-xl font-bold text-white">Staff Roster</h1>
           </div>
-          <p className="text-sm text-slate-500 ml-6">Manage your team members and their roles</p>
+          <p className="text-xs text-slate-500 ml-7">Manage team permissions and roles.</p>
         </div>
         {isTenant && (
           <button className="btn-primary" onClick={() => setOpen(true)}>
@@ -126,12 +126,7 @@ export default function StaffPage() {
       </motion.div>
 
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }} className="glass overflow-hidden">
-        <div className="px-4 py-3 border-b border-white/5 flex items-center justify-between gap-4">
-          <div className="relative max-w-xs flex-1">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-            <input className="input-field pl-9 py-2 text-sm" placeholder="Search staff…" value={search} onChange={e => setSearch(e.target.value)} />
-          </div>
-        </div>
+        {/* Local Search UI removed */}
 
         {isLoading && <Spinner />}
         {isError && <ErrorBanner message="Failed to load staff." />}
@@ -199,27 +194,6 @@ export default function StaffPage() {
                               onClick={() => handleEdit(s)}
                             >
                               Edit
-                            </button>
-                            <button 
-                              className="p-1 text-slate-600 hover:text-rose-500 hover:bg-rose-500/10 rounded transition-all"
-                              onClick={() => {
-                                setConfirmConfig({
-                                  open: true,
-                                  title: 'Remove Staff',
-                                  message: `Are you sure you want to remove ${s.firstName} from your staff?`,
-                                  isLoading: false,
-                                  onConfirm: async () => {
-                                    setConfirmConfig(prev => ({ ...prev, isLoading: true }));
-                                    try {
-                                      await deleteStaff.mutateAsync(s.id);
-                                    } finally {
-                                      setConfirmConfig(prev => ({ ...prev, open: false, isLoading: false }));
-                                    }
-                                  }
-                                });
-                              }}
-                            >
-                              <Trash2 size={14} />
                             </button>
                           </div>
                         </td>

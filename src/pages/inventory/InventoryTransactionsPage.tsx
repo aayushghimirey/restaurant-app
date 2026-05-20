@@ -9,10 +9,13 @@ import type { InventoryTransactionResponse } from '../../types/inventory';
 import { format } from 'date-fns';
 import Pagination from '../../components/ui/Pagination';
 
+import { useSearchParams } from 'react-router-dom';
+
 export default function InventoryTransactionsPage() {
+  const [searchParams] = useSearchParams();
+  const search = searchParams.get('q') || '';
   const [transactions, setTransactions] = useState<InventoryTransactionResponse[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
@@ -36,35 +39,21 @@ export default function InventoryTransactionsPage() {
     }
   };
 
-  const filteredTransactions = transactions; // Backend filtering if implemented, currently just pagination
+  const filteredTransactions = transactions;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <History className="text-brand-400" />
+          <h1 className="text-xl font-bold text-white flex items-center gap-2">
+            <History size={20} className="text-brand-400" />
             Stock Ledger
           </h1>
-          <p className="text-slate-400 text-sm mt-1">Audit log of all stock movements and adjustments.</p>
+          <p className="text-slate-500 text-xs mt-1">Audit log of all stock movements.</p>
         </div>
-      </div>
-
-      {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-4 items-center glass-card p-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-          <input
-            type="text"
-            placeholder="Search by item or remark..."
-            className="w-full bg-slate-800/50 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-brand-500/50 transition-all"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-        <button className="btn-ghost flex items-center gap-2">
-          <Calendar size={18} />
+        <button className="btn-ghost flex items-center gap-2 border border-white/5 bg-white/5">
+          <Calendar size={16} />
           Filter Date
         </button>
       </div>

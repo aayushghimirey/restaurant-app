@@ -20,8 +20,8 @@ export const staffService = {
   },
 
   update: async (id: string, data: UpdateStaffRequest) => {
-    const res = await api.put<ApiResponse<StaffResponse>>(
-      `/v1/tenant/staff/${id}`,
+    const res = await api.post<ApiResponse<StaffResponse>>(
+      `/v1/tenant/staff/${id}/update`,
       data
     );
     return res.data;

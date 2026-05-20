@@ -1,6 +1,8 @@
 import { motion } from 'framer-motion';
-import { Building2, GitBranch, Shield, Users, ChefHat } from 'lucide-react';
+import { Building2, GitBranch, Shield, Users, ChefHat, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
+import { tenantService } from '../services/tenantService';
 
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.08 } } };
 const item = { hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
@@ -34,8 +36,19 @@ function StatCard({ icon: Icon, label, value, color, description }: StatCardProp
 export default function DashboardPage() {
   const { user, isSuperAdmin } = useAuth();
 
+  const { data: statsData } = useQuery({
+    queryKey: ['tenant-stats'],
+    queryFn: () => tenantService.getStats(),
+    enabled: !!isSuperAdmin,
+  });
+
+  const stats = statsData?.data;
+
   const superAdminCards: StatCardProps[] = [
-    { icon: Building2,  label: 'Total Tenants',  value: '—', color: '#f97316', description: 'Registered restaurant groups' },
+    { icon: Building2,  label: 'Total Tenants',  value: stats ? stats.totalTenants.toString() : '—', color: '#6366f1', description: 'Registered restaurant groups' },
+    { icon: CheckCircle2, label: 'Active Tenants', value: stats ? stats.activeTenants.toString() : '—', color: '#34d399', description: 'Operational accounts' },
+    { icon: AlertTriangle, label: 'Suspended Tenants', value: stats ? stats.suspendedTenants.toString() : '—', color: '#ef4444', description: 'Terminated or blocked' },
+    { icon: Building2,  label: 'Inactive Tenants', value: stats ? stats.inactiveTenants.toString() : '—', color: '#64748b', description: 'Deactivated accounts' },
   ];
 
   const tenantCards: StatCardProps[] = [
@@ -45,6 +58,7 @@ export default function DashboardPage() {
   ];
 
   const cards = isSuperAdmin ? superAdminCards : tenantCards;
+
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -71,7 +85,7 @@ export default function DashboardPage() {
         variants={container}
         initial="hidden"
         animate="show"
-        className={`grid gap-4 ${isSuperAdmin ? 'grid-cols-1 sm:grid-cols-2 max-w-sm' : 'grid-cols-1 sm:grid-cols-3'}`}
+        className={`grid gap-4 ${isSuperAdmin ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 sm:grid-cols-3'}`}
       >
         {cards.map(c => <StatCard key={c.label} {...c} />)}
       </motion.div>

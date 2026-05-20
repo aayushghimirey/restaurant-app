@@ -1,7 +1,7 @@
 import api from '../lib/api';
 import type {
   ApiResponse, PagedResponse, Pageable,
-  TenantResponse, CreateTenantRequest,
+  TenantResponse, CreateTenantRequest, UpdateTenantRequest, TenantStatsResponse,
 } from '../types';
 
 const toParams = (p: Pageable) => ({ page: p.page, size: p.size });
@@ -20,8 +20,19 @@ export const tenantService = {
     return res.data;
   },
 
+  update: async (id: string, data: UpdateTenantRequest) => {
+    const res = await api.put<ApiResponse<TenantResponse>>(`/v1/superadmin/tenants/${id}`, data);
+    return res.data;
+  },
+
   delete: async (id: string) => {
     const res = await api.delete<ApiResponse<void>>(`/v1/superadmin/tenants/${id}`);
     return res.data;
   },
+
+  getStats: async () => {
+    const res = await api.get<ApiResponse<TenantStatsResponse>>('/v1/superadmin/tenants/stats');
+    return res.data;
+  },
 };
+

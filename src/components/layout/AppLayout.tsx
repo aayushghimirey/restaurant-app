@@ -1,6 +1,7 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import Sidebar from './Sidebar';
+import Header from './Header';
 import BranchSelectionScreen from '../../pages/BranchSelectionScreen';
 
 export default function AppLayout() {
@@ -8,17 +9,23 @@ export default function AppLayout() {
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
 
-  // Force branch selection for tenants if not selected
   if (isTenant && !user?.branchId) {
     return <BranchSelectionScreen />;
   }
 
   return (
-    <div className="flex min-h-screen" style={{ background: 'var(--color-surface-900)' }}>
+    <div className="flex h-screen overflow-hidden bg-surface-900 text-white">
+      {/* Sidebar - Fixed */}
       <Sidebar />
-      <div className="flex-1 flex flex-col min-w-0">
-        <main className="flex-1 p-6 lg:p-8 animate-fade-in">
-          <Outlet />
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 relative">
+        <Header />
+        
+        <main className="flex-1 overflow-y-auto custom-scrollbar p-6 lg:p-8 animate-fade-in relative">
+          <div className="max-w-7xl mx-auto">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

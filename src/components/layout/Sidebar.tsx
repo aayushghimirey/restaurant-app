@@ -4,10 +4,12 @@ import BranchSwitcher from './BranchSwitcher';
 import {
   LayoutDashboard, Building2, GitBranch, Shield,
   Users, LogOut, ChefHat, X, Menu, Package, History, Settings, Ruler, Utensils,
-  LayoutGrid, Receipt, Truck, ShoppingBag
+  LayoutGrid, Receipt, Truck, ShoppingBag, Layers, FileText
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
+import { businessDetailService } from '../../services/businessDetailService';
 
 const superAdminNav = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -17,6 +19,7 @@ const superAdminNav = [
 const tenantNav = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/orders',    icon: Receipt,         label: 'Orders' },
+  { to: '/invoices',  icon: FileText,        label: 'Invoices' },
   { to: '/take-order',icon: ShoppingBag,     label: 'Take Order' },
   { to: '/branches',  icon: GitBranch,       label: 'Branches' },
   { to: '/staff',     icon: Users,           label: 'Staff' },
@@ -25,8 +28,9 @@ const tenantNav = [
   { to: '/tables',    icon: LayoutGrid,      label: 'Tables' },
   { to: '/inventory', icon: Package,         label: 'Inventory' },
   { to: '/inventory/transactions', icon: History, label: 'Transactions' },
+  { to: '/inventory/categories', icon: Layers,    label: 'Categories' },
   { to: '/inventory/settings', icon: Ruler,       label: 'Units' },
-  { to: '/roles',     icon: Shield,          label: 'Roles' },
+  { to: '/roles',              icon: Shield,          label: 'Roles' },
 ];
 
 function NavItem({ to, icon: Icon, label }: { to: string; icon: React.ElementType; label: string }) {
@@ -62,6 +66,15 @@ export default function Sidebar() {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  // Fetch business name — only relevant for tenant users
+  const { data: bizData } = useQuery({
+    queryKey: ['business-detail'],
+    queryFn: businessDetailService.get,
+    enabled: !isSuperAdmin,
+    retry: false,
+  });
+  const displayName = bizData?.data?.businessName || user?.tenantName || 'STS-HOSPITALITY';
+
   let nav = isSuperAdmin ? superAdminNav : tenantNav;
   if (!isSuperAdmin && !isTenant) {
     nav = nav.filter(item => 
@@ -81,7 +94,9 @@ export default function Sidebar() {
           <ChefHat size={20} className="text-white" />
         </div>
         <div>
-          <p className="text-sm font-bold text-white leading-tight">STS-HOSPITALITY</p>
+          <p className="text-sm font-bold text-white leading-tight uppercase truncate max-w-[140px]">
+            {displayName}
+          </p>
           <div className="flex flex-col gap-0.5 mt-0.5">
             <p className="text-[10px] text-slate-500 uppercase font-medium tracking-wider">
               {user?.userType?.replace('_', ' ') ?? 'System'}
@@ -105,38 +120,17 @@ export default function Sidebar() {
         {nav.map(item => <NavItem key={item.to} {...item} />)}
       </nav>
 
-      {/* User / Logout */}
-      <div className="px-3 py-6 border-t border-white/5">
-        <div className="flex items-center gap-3 px-3 py-3 rounded-xl mb-3 bg-white/[0.03] border border-white/5">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold shadow-lg"
-            style={{ background: 'linear-gradient(135deg, var(--color-brand-500), var(--color-brand-800))' }}>
-            {user?.email?.[0]?.toUpperCase() ?? '?'}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold text-white truncate">{user?.email}</p>
-            <p className="text-[9px] text-slate-500 truncate mt-0.5">Active Session</p>
-          </div>
-        </div>
-        <button className="btn-ghost w-full justify-start text-red-400/80 hover:text-red-400 hover:bg-red-500/5 px-4"
-          onClick={handleLogout}>
-          <LogOut size={16} />
-          Sign out
-        </button>
-      </div>
     </div>
   );
 
+  useEffect(() => {
+    const handleToggle = () => setMobileOpen(v => !v);
+    window.addEventListener('toggle-sidebar', handleToggle);
+    return () => window.removeEventListener('toggle-sidebar', handleToggle);
+  }, []);
+
   return (
     <>
-      {/* Mobile toggle */}
-      <button
-        className="fixed top-4 left-4 z-50 p-2 rounded-xl lg:hidden"
-        style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}
-        onClick={() => setMobileOpen(v => !v)}
-      >
-        {mobileOpen ? <X size={18} /> : <Menu size={18} />}
-      </button>
-
       {/* Mobile overlay */}
       <AnimatePresence>
         {mobileOpen && (

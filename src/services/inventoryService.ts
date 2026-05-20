@@ -11,15 +11,17 @@ import type {
   PackagingUnitResponse,
   CreatePackagingUnitRequest,
   InventorySummaryResponse,
+  InventoryCategoryResponse,
+  InventoryCategoryRequest,
 } from '../types/inventory';
 
 export const inventoryService = {
   // Stock Items
-  getAllStockItems: async (search?: string, category?: string, page = 0, size = 12) => {
+  getAllStockItems: async (search?: string, categoryId?: string, page = 0, size = 12) => {
     const res = await api.get<ApiResponse<PagedResponse<StockItemResponse>>>('/v1/inventory/items', {
       params: { 
         search, 
-        category: category === 'ALL' ? undefined : category,
+        categoryId: categoryId === 'ALL' ? undefined : categoryId,
         page,
         size
       }
@@ -108,6 +110,29 @@ export const inventoryService = {
 
   adjustStock: async (data: StockAdjustmentRequest) => {
     const res = await api.post<ApiResponse<InventoryTransactionResponse>>('/v1/inventory/transactions/adjustment', data);
+    return res.data;
+  },
+
+  // Inventory Categories
+  getAllCategories: async (search?: string, page = 0, size = 100) => {
+    const res = await api.get<ApiResponse<PagedResponse<InventoryCategoryResponse>>>('/v1/inventory/categories', {
+      params: { search, page, size }
+    });
+    return res.data;
+  },
+
+  createCategory: async (data: InventoryCategoryRequest) => {
+    const res = await api.post<ApiResponse<InventoryCategoryResponse>>('/v1/inventory/categories', data);
+    return res.data;
+  },
+
+  updateCategory: async (id: string, data: InventoryCategoryRequest) => {
+    const res = await api.put<ApiResponse<InventoryCategoryResponse>>(`/v1/inventory/categories/${id}`, data);
+    return res.data;
+  },
+
+  deleteCategory: async (id: string) => {
+    const res = await api.delete<ApiResponse<void>>(`/v1/inventory/categories/${id}`);
     return res.data;
   },
 };

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Save, AlertCircle, ArrowUpRight, ArrowDownLeft, Box, Calculator, TrendingUp, TrendingDown } from 'lucide-react';
+import { X, Save, ArrowUpRight, ArrowDownLeft, Box, Calculator, TrendingUp, TrendingDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { inventoryService } from '../../services/inventoryService';
 import { 

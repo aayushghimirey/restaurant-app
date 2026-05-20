@@ -9,8 +9,27 @@ export interface AuthResponse {
   email: string;
   userType: string;
   tenantId?: string;
+  tenantName?: string;
   branchId?: string;
   branchName?: string;
+}
+
+// ── Business Detail ───────────────────────────────
+export interface BusinessDetailResponse {
+  id: string;
+  businessName: string;
+  address?: string;
+  businessEmail?: string;
+  businessPhone?: string;
+  panNumber?: string;
+}
+
+export interface BusinessDetailRequest {
+  businessName: string;
+  address?: string;
+  businessEmail?: string;
+  businessPhone?: string;
+  panNumber?: string;
 }
 
 // ── Pageable ──────────────────────────────────────
@@ -50,6 +69,19 @@ export interface CreateTenantRequest {
   adminEmail: string;
   adminPassword: string;
 }
+
+export interface UpdateTenantRequest {
+  name: string;
+  status: string;
+}
+
+export interface TenantStatsResponse {
+  totalTenants: number;
+  activeTenants: number;
+  inactiveTenants: number;
+  suspendedTenants: number;
+}
+
 
 // ── Branch ────────────────────────────────────────
 export interface BranchResponse {
@@ -190,7 +222,7 @@ export interface TableSummaryResponse {
 }
 
 // ── Order ─────────────────────────────────────────
-export type OrderStatus = 'PENDING' | 'PREPARING' | 'READY' | 'DELIVERED' | 'CANCELLED';
+export type OrderStatus = 'PENDING' | 'SERVED' | 'CANCELLED' | 'COMPLETED';
 
 export interface OrderItemMenuOptionResponse {
   id: string;
@@ -243,5 +275,56 @@ export interface CreateVendorRequest {
   address: string;
   contactNumber: string;
   panNumber: string;
+}
+
+// ── Invoice ───────────────────────────────────────
+export type InvoiceStatus = 'PENDING' | 'COMPLETED' | 'CANCELLED';
+export type PaymentMethod = 'CASH' | 'CARD' | 'FONEPAY' | 'OTHER';
+
+export const DateFilter = {
+  TODAY: 'TODAY',
+  THIS_WEEK: 'THIS_WEEK',
+  THIS_MONTH: 'THIS_MONTH',
+} as const;
+
+export type DateFilter = (typeof DateFilter)[keyof typeof DateFilter];
+
+export interface InvoiceMenuItems {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+}
+
+export interface InvoiceResponse {
+  invoiceId: string;
+  status: InvoiceStatus;
+  netTotal: number;
+  discountAmount: number;
+  grossTotal: number;
+  tableId: string;
+  orderId: string;
+  tableName?: string;
+  paymentMethod?: string;
+  items: InvoiceMenuItems[];
+}
+
+export interface ProcessInvoiceRequest {
+  id: string;
+  discountAmount: number;
+  paymentMethod: PaymentMethod;
+}
+
+export interface InvoiceSummaryResponse {
+  totalInvoices: number;
+  pendingInvoices: number;
+  completedInvoices: number;
+  cancelledInvoices: number;
+  totalSales: number;
+  totalDiscount: number;
+  cashSales: number;
+  cardSales: number;
+  fonepaySales: number;
+  otherSales: number;
 }
 

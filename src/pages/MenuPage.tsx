@@ -1,22 +1,22 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
-  ArrowRight,
+  ChevronRight,
   Edit2,
   Layers,
+  LayoutGrid,
+  List,
   Package,
   Plus,
   PlusCircle,
   Search,
   Trash2,
   Utensils,
-  LayoutGrid,
-  List,
-  X,
-  ChevronRight,
+  X
 } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import CreateMenuItemModal from '../components/menu/CreateMenuItemModal';
 import MenuOptionsModal from '../components/menu/MenuOptionsModal';
@@ -26,8 +26,8 @@ import { ErrorBanner, Spinner } from '../components/ui/Feedback';
 import Modal from '../components/ui/Modal';
 import Pagination from '../components/ui/Pagination';
 import { useAuth } from '../contexts/AuthContext';
-import { menuService } from '../services/menuService';
 import { DEFAULT_MENU_IMAGE } from '../lib/utils';
+import { menuService } from '../services/menuService';
 import type {
   CreateMenuCategoryRequest,
   CreateMenuItemRequest,
@@ -36,22 +36,22 @@ import type {
 
 /* ─────────────────────────── helpers ─────────────────────────── */
 
-const inputCls =
-  'w-full bg-slate-950 border border-white/[0.06] rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-brand-500/40 transition-all';
-
-const btnBase =
-  'inline-flex items-center justify-center gap-2 font-bold transition-all active:scale-95';
+const inputCls = 'w-full bg-slate-950 border border-white/[0.06] rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-brand-500/40 transition-all';
+const btnBase = 'inline-flex items-center justify-center gap-2 font-bold transition-all active:scale-95';
 
 /* ═══════════════════════════════════════════════════════════════ */
+
 export default function MenuPage() {
   const { isTenant } = useAuth();
-  const qc = useQueryClient();
-
-  /* ── state ── */
-  const [search, setSearch] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const search = searchParams.get('q') || '';
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [viewMode, setViewMode] = useState<'GRID' | 'LIST'>('GRID');
-  const [page, setPage] = useState(0);
+  const page = parseInt(searchParams.get('page') || '0', 10);
+  const setPage = (p: number) => {
+    searchParams.set('page', p.toString());
+    setSearchParams(searchParams);
+  };
   const [selectedItem, setSelectedItem] = useState<MenuItemResponse | null>(null);
 
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
@@ -59,11 +59,12 @@ export default function MenuPage() {
   const [isRecipeModalOpen, setIsRecipeModalOpen] = useState(false);
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
   const [editingCat, setEditingCat] = useState<any | null>(null);
-
   const [confirmConfig, setConfirmConfig] = useState<{
     open: boolean; title: string; message: string;
     onConfirm: () => void; isLoading: boolean;
   }>({ open: false, title: '', message: '', onConfirm: () => { }, isLoading: false });
+
+  const qc = useQueryClient();
 
   /* ── queries ── */
   const { data: menuRes, isLoading: menuLoading, isError: menuError } = useQuery({
@@ -133,80 +134,52 @@ export default function MenuPage() {
     onError: () => toast.error('Failed to delete category'),
   });
 
-  /* ── derived ── */
   const items = menuRes?.data?.content ?? [];
   const categories = catRes?.data ?? [];
 
-  /* ══════════════════════ render ══════════════════════ */
   return (
-    <div className="flex flex-col h-[calc(100vh-3rem)] lg:h-[calc(100vh-4rem)] bg-slate-950 text-white rounded-2xl overflow-hidden border border-white/[0.05] shadow-2xl">
-
+    <div className="flex flex-col h-[calc(100vh-10rem)]">
       {/* ── Top Bar ── */}
-      <div className="shrink-0 z-20 bg-slate-950 border-b border-white/[0.06]">
-        <div className="px-6 py-4 flex items-center justify-between gap-4">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-xl font-bold text-white flex items-center gap-2">
+            <Utensils size={20} className="text-brand-400" />
+            Menu Management
+          </h1>
+          <p className="text-xs text-slate-500 mt-1">Design and manage your digital catalog.</p>
+        </div>
 
-          {/* title */}
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="w-9 h-9 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-400">
-              <Utensils size={18} />
-            </div>
-            <div>
-              <h1 className="text-base font-black text-white tracking-tight leading-none">Menu</h1>
-              <p className="text-[10px] text-slate-500 font-semibold mt-0.5 uppercase tracking-widest">Management</p>
-            </div>
-          </div>
-
-          {/* search */}
-          <div className="flex-1 max-w-lg relative group">
-            <Search
-              size={15}
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-brand-400 transition-colors pointer-events-none"
-            />
-            <input
-              type="text"
-              placeholder="Search items by name, category…"
-              value={search}
-              onChange={e => { setSearch(e.target.value); setPage(0); }}
-              className="w-full bg-slate-900 border border-white/[0.06] rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-brand-500/40 transition-all"
-            />
-          </div>
-
-          {/* actions */}
-          <div className="flex items-center gap-2 shrink-0">
-            {/* view toggle */}
-            <div className="flex items-center bg-slate-900 border border-white/[0.06] rounded-xl p-1">
-              <button
-                onClick={() => setViewMode('GRID')}
-                title="Grid view"
-                className={`p-2 rounded-lg transition-all ${viewMode === 'GRID' ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/25' : 'text-slate-500 hover:text-slate-300'}`}
-              >
-                <LayoutGrid size={15} />
-              </button>
-              <button
-                onClick={() => setViewMode('LIST')}
-                title="List view"
-                className={`p-2 rounded-lg transition-all ${viewMode === 'LIST' ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/25' : 'text-slate-500 hover:text-slate-300'}`}
-              >
-                <List size={15} />
-              </button>
-            </div>
-
+        <div className="flex items-center gap-3">
+          <div className="flex items-center bg-white/[0.03] border border-white/10 rounded-xl p-1">
             <button
-              onClick={() => setIsCatModalOpen(true)}
-              className={`${btnBase} h-10 px-4 rounded-xl bg-slate-900 border border-white/[0.06] text-slate-300 text-xs hover:border-white/20 hover:bg-slate-800`}
+              onClick={() => setViewMode('GRID')}
+              className={`p-1.5 rounded-lg transition-all ${viewMode === 'GRID' ? 'bg-brand-500 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
             >
-              <Layers size={15} className="text-brand-400" />
-              Categories
+              <LayoutGrid size={14} />
             </button>
-
             <button
-              onClick={() => { setSelectedItem(null); setIsItemModalOpen(true); }}
-              className={`${btnBase} h-10 px-5 rounded-xl bg-brand-500 text-white text-xs shadow-lg shadow-brand-500/25 hover:bg-brand-400`}
+              onClick={() => setViewMode('LIST')}
+              className={`p-1.5 rounded-lg transition-all ${viewMode === 'LIST' ? 'bg-brand-500 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
             >
-              <Plus size={16} />
-              Add Item
+              <List size={14} />
             </button>
           </div>
+
+          <button
+            onClick={() => setIsCatModalOpen(true)}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/[0.03] border border-white/10 text-slate-300 text-xs hover:border-white/20 transition-all"
+          >
+            <Layers size={14} className="text-brand-400" />
+            Categories
+          </button>
+
+          <button
+            onClick={() => { setSelectedItem(null); setIsItemModalOpen(true); }}
+            className="btn-primary h-10 px-4"
+          >
+            <Plus size={16} />
+            Add Item
+          </button>
         </div>
       </div>
 
@@ -280,7 +253,14 @@ export default function MenuPage() {
                 <span className="inline-flex items-center gap-1.5 bg-slate-800 border border-white/5 text-slate-400 text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-full">
                   <Search size={10} />
                   "{search}"
-                  <button onClick={() => setSearch('')} className="ml-0.5 hover:text-white transition-colors">
+                  <button 
+                    onClick={() => {
+                      searchParams.delete('q');
+                      searchParams.set('page', '0');
+                      setSearchParams(searchParams);
+                    }} 
+                    className="ml-0.5 hover:text-white transition-colors"
+                  >
                     <X size={10} />
                   </button>
                 </span>
